@@ -1,0 +1,109 @@
+"use client";
+
+import { UserCheck } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
+import type { AskResponseMoRong, IsoDate } from "@/lib/api/contract";
+import { formatDate } from "@/lib/format";
+import { vi } from "@/lib/i18n/vi";
+import { presence, presenceReduced } from "@/lib/motion";
+import { StatusBadge } from "../status";
+import { Checklist } from "./checklist";
+import { CitationChip, type ResolvedCitation } from "./citation-chip";
+
+/** DESIGN.md §4.2 */
+export function AnswerCard({
+  response,
+  citations,
+  applied,
+  today,
+  onOpenCitation,
+}: {
+  response: AskResponseMoRong;
+  citations: ResolvedCitation[];
+  applied: IsoDate;
+  today: IsoDate;
+  onOpenCitation: (id: string) => void;
+}) {
+  const reduced = useReducedMotion();
+  const variants = reduced ? presenceReduced : presence;
+
+  return (
+    <motion.article
+      data-film="answer"
+      aria-labelledby="answer-heading"
+      variants={variants}
+      initial="hidden"
+      animate="shown"
+      exit="gone"
+      className="rounded-lg border border-line bg-surface p-6 shadow-card max-sm:p-4"
+    >
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2
+            id="answer-heading"
+            className="font-display text-[1.375rem] leading-[1.35] font-semibold"
+          >
+            {vi.answer.heading}
+          </h2>
+          <p className="text-sm text-ink-3">
+            {vi.answer.forDate}{" "}
+            <span className="font-mono text-ink-2 tabular-nums">{formatDate(applied)}</span>
+          </p>
+        </div>
+        <span data-film="answer-status">
+          {response.can_xac_nhan ? (
+            <StatusBadge status="can_xac_nhan" />
+          ) : (
+            <StatusBadge status="con_hieu_luc" label={vi.status.verified} />
+          )}
+        </span>
+      </header>
+
+      <p className="mt-4 text-[1.125rem] leading-[1.6] text-ink">{response.tra_loi}</p>
+
+      <section className="mt-5" aria-label={vi.answer.citations}>
+        <h3 className="mb-2 text-sm font-semibold text-ink-2">{vi.answer.citations}</h3>
+        <motion.ul
+          className="flex flex-wrap gap-2"
+          initial="hidden"
+          animate="shown"
+          variants={{
+            shown: { transition: { staggerChildren: reduced ? 0 : 0.06, delayChildren: 0.15 } },
+          }}
+        >
+          {citations.map((c, i) => (
+            <motion.li key={c.trich.id} variants={variants} className="max-w-full">
+              <CitationChip
+                citation={c}
+                film={`citation-chip-${i}`}
+                onOpen={() => onOpenCitation(c.trich.id)}
+              />
+            </motion.li>
+          ))}
+        </motion.ul>
+      </section>
+
+      <section className="mt-6" aria-label={vi.answer.checklist}>
+        <h3 className="mb-3 text-sm font-semibold text-ink-2">{vi.answer.checklist}</h3>
+        <Checklist
+          items={response.checklist}
+          today={today}
+          citations={citations}
+          onOpenCitation={onOpenCitation}
+        />
+      </section>
+
+      <p className="mt-6 flex items-start gap-2 border-t border-line pt-4 text-sm leading-[1.5] text-ink-2">
+        <UserCheck
+          aria-hidden
+          className={
+            response.can_xac_nhan
+              ? "mt-0.5 size-4 shrink-0 text-amber"
+              : "mt-0.5 size-4 shrink-0 text-ink-3"
+          }
+        />
+        {vi.answer.accountantStep}
+      </p>
+    </motion.article>
+  );
+}

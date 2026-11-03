@@ -1,0 +1,131 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LexVi "Ink & Jade" tokens — DESIGN.md §2.4. Contrast ratios live in DESIGN.md §2;
+   change a colour there first (with its recomputed ratio), then here.
+   ───────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-paper: #faf8f3;
+  --color-surface: #ffffff;
+  --color-surface-sunk: #f2efe7;
+  --color-line: #e3ded3;
+  --color-line-strong: #7d8698;
+  --color-ink: #0e1726;
+  --color-ink-2: #3d4a5c;
+  --color-ink-3: #5e6a7d;
+  --color-brand: #1d3a8a;
+  --color-brand-tint: #e8edfa;
+  --color-gold: #9c7a14;
+
+  --color-jade: #0b6e52;
+  --color-jade-tint: #e2f3ec;
+  --color-amend: #5b3fb8;
+  --color-amend-tint: #efebfb;
+  --color-crimson: #b42318;
+  --color-crimson-tint: #fdecea;
+  --color-amber: #8a5300;
+  --color-amber-tint: #fff1d6;
+
+  --color-night: #0a0f1a;
+  --color-night-surface: #121a2a;
+  --color-night-line: #62708a;
+  --color-night-text: #e8ecf2;
+  --color-night-muted: #a3aec0;
+  --color-night-brand: #8fa8ff;
+  --color-night-jade: #3dd6a3;
+  --color-night-amber: #f5b547;
+  --color-night-crimson: #ff7a6e;
+  --color-night-amend: #b8a4ff;
+  --color-night-gold: #e6c35c;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Overlay scrim (DESIGN.md §6). */
+  --color-scrim: rgb(14 23 38 / 0.32);
+
+  /* Vietnamese diacritics need line-height ≥ 1.5 below display sizes (DESIGN.md §3);
+     Tailwind's defaults for xs/sm (1.33 / 1.43) are too tight. */
+  --text-xs--line-height: 1.5;
+  --text-sm--line-height: 1.5;
+
+  --shadow-card: 0 1px 2px rgb(14 23 38 / 0.06), 0 1px 1px rgb(14 23 38 / 0.04);
+  --shadow-overlay: 0 12px 32px rgb(14 23 38 / 0.14), 0 2px 6px rgb(14 23 38 / 0.08);
+
+  /* House easing triple — identical to Pyrium motion/theme.ts and the Ignis film (DESIGN.md §10). */
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.45, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-ui: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* next/font sets these variables on <html>, so the theme references them inline. */
+@theme inline {
+  --font-display: var(--font-be-vietnam-pro), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  --font-serif: var(--font-source-serif), Georgia, serif;
+  --font-heading: var(--font-display);
+
+  /* shadcn/ui variables mapped onto LexVi tokens (DESIGN.md §2.4 note) — no neutral OKLCH palette. */
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-brand);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-surface-sunk);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-surface-sunk);
+  --color-muted-foreground: var(--color-ink-3);
+  --color-accent: var(--color-brand-tint);
+  --color-accent-foreground: var(--color-brand);
+  --color-destructive: var(--color-crimson);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line-strong);
+  --color-ring: var(--color-brand);
+}
+
+@layer base {
+  html {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    /* Vietnamese diacritics need ≥ 1.5 line-height (DESIGN.md §3). */
+    line-height: 1.6;
+    background: var(--color-paper);
+  }
+
+  /* One focus ring everywhere (DESIGN.md §4). */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-brand-tint);
+    color: var(--color-ink);
+  }
+}
+
+/* Camera-ready capture mode (DESIGN.md §13.1): set by FilmProvider as <html data-film-mode>. */
+html[data-film-mode] {
+  scrollbar-width: none;
+}
+html[data-film-mode] ::-webkit-scrollbar {
+  display: none;
+}
+html[data-film-mode] textarea,
+html[data-film-mode] input {
+  caret-color: transparent;
+}
