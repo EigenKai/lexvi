@@ -42,6 +42,12 @@ def citation_problems(store: LawStore, c: dict, on: str, i: int = 1) -> list[str
         problems.append(f"Trích dẫn {i} ({pid}): câu trích quá ngắn, phải chép nguyên văn một câu.")
     elif normalize(quote) not in normalize(p["noi_dung"]):
         problems.append(f"Trích dẫn {i} ({pid}): câu trích không có nguyên văn trong điều khoản.")
+    elif p.get("page_spans"):
+        locations = store.quote_locations(pid, quote)
+        if not locations:
+            problems.append(f"Trích dẫn {i} ({pid}): không định vị được câu trích trên trang nguồn.")
+        elif c.get("trang") is not None and c["trang"] not in {x["trang"] for x in locations}:
+            problems.append(f"Trích dẫn {i} ({pid}): số trang không chứa câu trích.")
     if not str(c.get("nhan_dinh", "")).strip():
         problems.append(f"Trích dẫn {i} ({pid}): thiếu nhận định mà câu trích chứng minh.")
     return problems

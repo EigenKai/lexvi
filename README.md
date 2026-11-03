@@ -24,7 +24,7 @@ All model calls go to `muse-spark-1.3` through the Meta Model API (OpenAI SDK, R
 | Verification (`lexvi/verify.py`) | judges whether each cited provision supports the claim attached to it | before the judge: provision exists, applies on the date, quote is verbatim, checklist items cite cited provisions |
 | Refusal and escalation | reads the refusal reasons and fixes the answer | after 3 refusals the answer goes out flagged `can_xac_nhan` (needs an accountant) |
 | New regulation (`lexvi/ingest.py`) | reads a new PDF, maps each change to a stored provision, decides if it affects this business, writes dated to-dos | every excerpt must be verbatim in the PDF and every target must exist, else the change is dropped |
-| Corpus building (`scripts/build_corpus.py`) | splits official PDFs into clauses with structured output | clauses not verbatim in the PDF are dropped |
+| Corpus data (role A, `scripts/rebuild_a.py`) | no model call for the checked-in corpus | offline parsing preserves source page spans; amendment edges and legal-date exceptions carry evidence |
 
 ## API
 
@@ -50,17 +50,34 @@ pyenv/bin/python -m pytest -q # offline tests, no API calls
 pyenv/bin/uvicorn lexvi.api:app --port 8000
 ```
 
-Data: see [`data/README.md`](data/README.md). Evaluation against plain RAG: `pyenv/bin/python -m scripts.run_eval`.
+Data: see [`data/README.md`](data/README.md). Role-A handoff: [`docs/ROLE_A_HANDOFF.md`](docs/ROLE_A_HANDOFF.md).
+Evaluation against plain RAG: `pyenv/bin/python -m scripts.run_eval`.
 
 ## Results
 
-To be filled from `scripts/run_eval.py` once the test set is complete.
+Role A's offline data audit passes: **30 documents, 689 articles, 3,586 provision records,
+195 graph edges, 20 reference questions (11 temporal traps)**. All 27 reference citations are
+located on source pages; 13 stale-citation examples are rejected. `python -m pytest -q`: **28 passed**.
+
+These are corpus/verification checks, not Spark answer accuracy. Spark vs plain-RAG figures have
+not been measured here; role B can run `scripts/run_eval.py` with its own API key. The reference
+answers and graph are agent-reviewed and still require human legal sign-off.
 
 ## Data sources
 
-To be filled by the data owner: each document, its number and official URL.
+The bounded corpus was collected and checked on **3 Nov 2026**, from the Government document portal
+and Công báo. All 30 document numbers, issuance/effective dates, official links, text editions and
+SHA-256 provenance are listed in [`data/SOURCES.md`](data/SOURCES.md) and `data/sources.json`.
+Original signed PDFs, Công báo parts and page text are checked in. No third-party legal database,
+ViHERMES code or URAx-Law graph was imported.
+
+The role-A data pipeline, graph curation, reference QA set, replay demo and temporal/page handling
+were added on 3 Nov 2026 as part of this hackathon. This does not claim work was done on 31 Oct.
 
 ## Limits
 
 - Covers only the documents in `data/`; questions outside them come back as "no basis found".
+- The graph is curated for the F&B demo scope, not an exhaustive consolidation of every amendment.
+  A partly amended clause is rejected as-written; an unchanged sibling remains available.
+- `demo/role_a/` replays the historical arrival of Decree 141/2026 and is labelled as a replay.
 - Not tax or legal advice. Answers flagged `can_xac_nhan` must be checked by an accountant or the tax office.

@@ -1,0 +1,38 @@
+{
+  "che_do": "PHAT_LAI_LICH_SU_KHONG_PHAI_VAN_BAN_MOI_VUA_BAN_HANH_HOM_NAY",
+  "moc_truoc": "2026-04-28",
+  "moc_sau": "2026-04-30",
+  "ngay_ap_dung": "2026-04-01",
+  "ho_so": {
+    "loai_hinh": "ho_kinh_doanh",
+    "nganh": "cà phê",
+    "doanh_thu_nam": 700000000,
+    "dia_ban": "TP.HCM"
+  },
+  "van_ban_moi": "141/2026/NĐ-CP",
+  "ngay_ban_hanh": "2026-04-29",
+  "hieu_luc_tu": "2026-01-01",
+  "dieu_bi_anh_huong": [
+    "68-2026-ND-CP-D3-K1",
+    "68-2026-ND-CP-D4-K1",
+    "68-2026-ND-CP-D8-K1"
+  ],
+  "can_cu_moi": [
+    "141-2026-ND-CP-D1-K1",
+    "141-2026-ND-CP-D3",
+    "141-2026-ND-CP-D4-K1"
+  ],
+  "viec_goi_y": [
+    {
+      "viec": "Đối chiếu doanh thu năm và các khoản GTGT/TNCN đã kê khai, nộp để kiểm tra xử lý số thuế nộp thừa theo Điều 4 khoản 1 Nghị định 141 và Điều 12 Nghị định 68.",
+      "han": null,
+      "ly_do_han": "Không bịa hạn: khoản 1 Điều 4 không nêu một ngày hạn cố định.",
+      "can_xac_nhan": true
+    }
+  ],
+  "khong_ket_luan": [
+    "Tự động được hoàn toàn bộ tiền thuế",
+    "Không còn nghĩa vụ thông báo doanh thu",
+    "Tự suy ra hạn nộp hồ sơ từ ngày demo"
+  ]
+}

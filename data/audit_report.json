@@ -1,0 +1,24 @@
+{
+  "ngay_dong_bang": "2026-11-03",
+  "so_van_ban": 30,
+  "so_muc_dieu_khoan": 3586,
+  "so_dieu": 689,
+  "so_quan_he": 195,
+  "loai_quan_he": {
+    "sua_doi": 36,
+    "bai_bo": 5,
+    "dan_chieu": 138,
+    "huong_dan": 10,
+    "thay_the": 6
+  },
+  "so_trang_nguon": 1326,
+  "so_doan_trang_da_kiem": 4220,
+  "so_cau_hoi": 20,
+  "so_cau_bay": 11,
+  "so_can_cu_dap_an_da_kiem": 27,
+  "so_can_cu_cu_da_thu_loai": 13,
+  "so_muc_ocr_chua_duyet": 0,
+  "loi": [],
+  "phap_ly_da_duoc_nguoi_ky_duyet": false,
+  "da_chay_spark_vs_rag": false
+}
