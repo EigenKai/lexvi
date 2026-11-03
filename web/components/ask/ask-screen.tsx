@@ -5,11 +5,11 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useProfile, useT } from "@/components/providers";
 import { MockBanner } from "@/components/shell/mock-banner";
-import { ask, getCitationDetail } from "@/lib/api/client";
-import type { AskResponseMoRong, HoSo, IsoDate } from "@/lib/api/contract";
+import { ask } from "@/lib/api/client";
+import type { AskResponseMoRong, HoSo, IsoDate, RunMeta } from "@/lib/api/contract";
 import { MOCK_SUGGESTIONS } from "@/lib/api/mock";
 import { type FilmConfig, readFilmConfig } from "@/lib/film";
-import { citationStatus, isCitableStatus } from "@/lib/legal-status";
+import { isCitableStatus } from "@/lib/legal-status";
 import { presence, presenceReduced } from "@/lib/motion";
 import { AnswerCard } from "./answer-card";
 import { AppliedDatePicker } from "./applied-date-picker";
@@ -26,6 +26,7 @@ interface Result {
   applied: IsoDate;
   response: AskResponseMoRong;
   citations: ResolvedCitation[];
+  meta: RunMeta;
   /**
    * can_xac_nhan, forced true if the answer cites an article that is not in force on the applied
    * date (expired, amended, not yet applicable, or not found in its chain) — DESIGN.md §4.3.
@@ -48,6 +49,15 @@ export function AskScreen() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const abort = useRef<AbortController | null>(null);
+  // Seconds since the request started; the real /ask takes ~30 s, so show progress.
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (phase !== "searching") return;
+    setElapsed(0);
+    const started = Date.now();
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [phase]);
   const runCount = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -68,20 +78,18 @@ export function AskScreen() {
       setLastAsked(q);
       setPhase("searching");
       try {
-        const response = await ask(
+        const { response, views, meta } = await ask(
           { cau_hoi: q, ngay_ap_dung: date, ho_so: profile },
           { latencyMs: film.latencyMs, scenario: film.scenario, signal: ctrl.signal },
         );
-        const citations = await Promise.all(
-          response.trich_dan.map(async (trich): Promise<ResolvedCitation> => {
-            const detail = await getCitationDetail(trich.id, ctrl.signal);
-            return {
-              trich,
-              detail,
-              status: detail ? citationStatus(detail.van_ban.so_hieu, detail.chuoi, date) : null,
-            };
-          }),
-        );
+        const citations: ResolvedCitation[] = response.trich_dan.map((trich) => {
+          const view = views[trich.id] ?? {
+            id: trich.id,
+            cau_trich: trich.cau_trich,
+            trang: trich.trang,
+          };
+          return { trich, view, status: view.trang_thai ?? null };
+        });
         if (ctrl.signal.aborted) return;
         runCount.current += 1;
         setResult({
@@ -89,6 +97,7 @@ export function AskScreen() {
           applied: date,
           response,
           citations,
+          meta,
           needsConfirm: response.can_xac_nhan || citations.some((c) => !isCitableStatus(c.status)),
         });
         setPhase("verifying");
@@ -216,6 +225,11 @@ export function AskScreen() {
             >
               <Loader2 aria-hidden className="size-4 text-brand motion-safe:animate-spin" />
               {t.ask.searching}
+              {elapsed >= 2 && (
+                <span className="font-mono text-xs text-ink-3 tabular-nums">
+                  {t.ask.elapsed(elapsed)}
+                </span>
+              )}
             </motion.p>
           )}
           {phase === "error" && (
@@ -235,10 +249,16 @@ export function AskScreen() {
               <VerificationRibbon
                 attempts={result.response.kiem_chung}
                 canXacNhan={result.needsConfirm}
+                unresolved={result.meta.van_de}
                 play
                 pace={film.pace}
                 onDone={onRibbonDone}
               />
+              {result.meta.so_luot !== undefined && result.meta.thoi_gian_giay !== undefined && (
+                <p data-film="run-meta" className="-mt-2 font-mono text-xs text-ink-3 tabular-nums">
+                  {t.ask.runMeta(result.meta.so_luot, Math.round(result.meta.thoi_gian_giay))}
+                </p>
+              )}
               <AnimatePresence>
                 {phase === "done" && (
                   <AnswerCard
@@ -261,6 +281,7 @@ export function AskScreen() {
         applied={result?.applied ?? applied}
         attempts={result?.response.kiem_chung}
         canXacNhan={result?.needsConfirm ?? false}
+        unresolved={result?.meta.van_de}
         onClose={() => setOpenId(null)}
       />
       <ProfileSheet

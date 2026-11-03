@@ -8,12 +8,19 @@ const SHORT_TYPE: Record<LoaiVanBan, string> = {
 };
 
 /** "NĐ 141/2026/NĐ-CP" */
-export function docLabel(loai: LoaiVanBan, soHieu: string): string {
-  return `${SHORT_TYPE[loai]} ${soHieu}`;
+export function docLabel(loai: string | undefined, soHieu: string): string {
+  // Unknown types (e.g. the backend's "nghi_dinh") fall back to the number alone; the number
+  // itself already carries the type suffix (…/NĐ-CP, …/QH15).
+  const short = loai ? SHORT_TYPE[loai as LoaiVanBan] : undefined;
+  return short ? `${short} ${soHieu}` : soHieu;
 }
 
-/** "Điều 8 khoản 5" */
-export function articleLabel(dk: Pick<DieuKhoan, "dieu" | "khoan">): string {
+/** "Điều 8 khoản 5" — dieu/khoan may be numbers (mock) or strings like "10a" (backend). */
+export function articleLabel(dk: {
+  dieu?: Pick<DieuKhoan, "dieu">["dieu"] | string;
+  khoan?: Pick<DieuKhoan, "khoan">["khoan"] | string;
+}): string {
+  if (dk.dieu === undefined || dk.dieu === "") return "";
   return dk.khoan ? `Điều ${dk.dieu} khoản ${dk.khoan}` : `Điều ${dk.dieu}`;
 }
 

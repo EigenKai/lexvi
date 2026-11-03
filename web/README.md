@@ -20,7 +20,23 @@ the other team members.
   chain and a checklist.
 - **New regulation affecting you** (`/canh-bao`): drop a new legal PDF → `POST /ingest` → the articles it
   changes (old text → new text), whether each affects this business, tasks, and changes dropped by verification.
-- Benchmark and profile screens: in progress.
+- **Benchmark** (`/kiem-thu`): plain RAG vs LexVi on the team-written test set, as counts with N. It shows
+  "no results yet" until a real run is imported (see below); it never shows placeholder numbers.
+- **Profile** (`/ho-so`): the business profile every answer depends on (stored in this browser only).
+
+### Backend connection
+
+With `NEXT_PUBLIC_LEXVI_API_URL` set, the Ask screen calls `POST /ask`, then `GET /runs/{run_id}` to replay the
+verification attempts and show the article text the agent read (`lib/api/adapter.ts`). The backend reports
+statuses and refusal reasons as Vietnamese sentences; the adapter maps them to the UI's statuses and checks.
+
+### Benchmark results
+
+After `python -m scripts.run_eval` (repo root) writes `eval/results-<timestamp>.json`:
+
+```sh
+cd web && pnpm benchmark:import   # copies the newest run into lib/benchmark/results.json
+```
 
 The UI opens in **English**; the EN | VI toggle switches to Vietnamese (`?lang=vi` in the URL also works).
 Legal text, quotes and answers stay in Vietnamese, the language of the source law.

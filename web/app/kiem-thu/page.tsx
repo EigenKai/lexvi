@@ -1,5 +1,5 @@
-import { Placeholder } from "@/components/shell/placeholder";
+import { BenchmarkScreen } from "@/components/benchmark/benchmark-screen";
 
-export default function Page() {
-  return <Placeholder titleKey="benchmark" />;
+export default function BenchmarkPage() {
+  return <BenchmarkScreen />;
 }

@@ -3,22 +3,25 @@
 import { cn } from "cn";
 import { FileText } from "lucide-react";
 import { useT } from "@/components/providers";
-import type { ChiTietDieuKhoan, TrangThai, TrichDan } from "@/lib/api/contract";
+import type { CitationView, TrangThai, TrichDan } from "@/lib/api/contract";
 import { articleLabel, docLabel } from "@/lib/format";
 import { STATUS_STYLE } from "../status";
 
 export interface ResolvedCitation {
   trich: TrichDan;
-  /** Null when the backend has no detail endpoint yet. */
-  detail: ChiTietDieuKhoan | null;
-  /** Null when unknown (no detail). */
+  /** What the UI knows about this citation (some fields may be missing with the real backend). */
+  view: CitationView;
+  /** Null when unknown. */
   status: TrangThai | null;
 }
 
+/** "Điều 4 khoản 1 · NĐ 141/2026/NĐ-CP", degrading to whatever is known, then to the id. */
 export function citationLabel(c: ResolvedCitation): string {
-  if (!c.detail) return c.trich.id;
-  const { dieu_khoan, van_ban } = c.detail;
-  return `${articleLabel(dieu_khoan)} · ${docLabel(van_ban.loai, van_ban.so_hieu)}`;
+  const v = c.view;
+  const article = articleLabel(v);
+  const doc = v.so_hieu ? docLabel(v.loai, v.so_hieu) : "";
+  if (article && doc) return `${article} · ${doc}`;
+  return article || doc || c.trich.id;
 }
 
 /** DESIGN.md §4.3 — mono pill, status-tinted, icon left, opens the CitationDrawer. */

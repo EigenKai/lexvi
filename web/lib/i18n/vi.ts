@@ -51,6 +51,8 @@ export const vi = {
     searching: "Đang tìm điều khoản theo ngày áp dụng…",
     error: "Không lấy được câu trả lời. Hãy thử lại.",
     empty: "Nhập câu hỏi hoặc chọn một câu hỏi mẫu để bắt đầu.",
+    elapsed: (s: number) => `${s} giây`,
+    runMeta: (steps: number, secs: number) => `${steps} bước · ${secs} giây`,
   },
 
   appliedDate: {
@@ -115,6 +117,14 @@ export const vi = {
     dan_chieu: "dẫn chiếu",
   } satisfies Record<LoaiQuanHe, string>,
 
+  relationBy: {
+    sua_doi: "bị sửa đổi bởi",
+    thay_the: "bị thay thế bởi",
+    bai_bo: "bị bãi bỏ bởi",
+    huong_dan: "được hướng dẫn bởi",
+    dan_chieu: "được dẫn chiếu bởi",
+  } satisfies Record<LoaiQuanHe, string>,
+
   verify: {
     title: "Kiểm chứng trước khi trả lời",
     attempt: (n: number, max: number) => `lần ${n}/${max}`,
@@ -136,9 +146,16 @@ export const vi = {
     statusNeedsConfirm:
       "Các bước kiểm tra đã đạt, nhưng có căn cứ chưa ở trạng thái còn hiệu lực tại ngày áp dụng — cần kế toán xác nhận.",
     finalOnly: "Máy chủ chỉ trả về kết quả cuối.",
+    unresolved: "Vấn đề còn lại",
   },
 
   drawer: {
+    supports: "Chứng minh cho",
+    relations: "Văn bản tác động tới điều này",
+    noRelations: "Trong kho chưa có văn bản nào sửa đổi điều này.",
+    relFrom: (d: string) => `từ ${d}`,
+    relPending: "chưa áp dụng tại ngày bạn chọn",
+    backendStatus: "Máy chủ ghi nhận",
     close: "Đóng",
     document: "Văn bản",
     issued: "Ngày ban hành",
@@ -199,6 +216,50 @@ export const vi = {
     droppedHint:
       "LexVi chỉ hiển thị thay đổi có trích đoạn nguyên văn trong văn bản mới và trỏ tới điều khoản có trong kho.",
     another: "Đọc văn bản khác",
+  },
+
+  bench: {
+    title: "Kiểm thử: LexVi so với RAG thường",
+    subtitle:
+      "Cùng bộ câu hỏi, cùng kho điều khoản, cùng mô hình. Kết quả là số câu đếm được, không dùng phần trăm.",
+    emptyTitle: "Chưa có kết quả",
+    emptyBody:
+      "Kết quả sẽ có sau khi chạy scripts/run_eval.py trên bộ câu hỏi do nhóm soạn, khi kho điều khoản đã được nạp.",
+    rag: "RAG thường",
+    lexvi: "LexVi",
+    lower: "càng thấp càng tốt",
+    higher: "càng cao càng tốt",
+    reference: "để tham khảo",
+    metrics: {
+      dan_dieu_cu: "Trích điều không áp dụng tại ngày hỏi",
+      dung_can_cu: "Dẫn đúng căn cứ",
+      trich_sai: "Câu trích không khớp nguyên văn",
+      can_xac_nhan: "Gắn nhãn cần kế toán xác nhận",
+    },
+    table: "Từng câu hỏi",
+    colQ: "Câu hỏi",
+    colDate: "Ngày áp dụng",
+    outdated: "Dẫn điều cũ",
+    notOutdated: "Không",
+    footer: (n: number, model: string, date: string) =>
+      `Bộ câu hỏi do nhóm soạn · ${n} câu · mô hình ${model} · chạy ngày ${date}`,
+    source: "Tệp kết quả",
+    note: "Mẫu nhỏ: hãy đọc như số đếm, không suy ra tỷ lệ chung.",
+  },
+
+  profilePage: {
+    title: "Hồ sơ kinh doanh",
+    subtitle: "LexVi gửi hồ sơ này kèm mọi câu hỏi và mọi văn bản mới bạn đưa vào.",
+    saved: "Đã lưu hồ sơ.",
+    stored: "Hồ sơ chỉ lưu trên trình duyệt này.",
+    howTitle: "LexVi dùng thông tin này thế nào",
+    how: {
+      loaiHinh: "Cho biết nhóm quy định cần tra: hộ kinh doanh hay doanh nghiệp nhỏ.",
+      doanhThu:
+        "Được đối chiếu với các ngưỡng doanh thu, ví dụ mức không phải nộp thuế hoặc mức bắt buộc hoá đơn điện tử.",
+      nganh: "Gửi kèm câu hỏi để tìm quy định đúng ngành.",
+      diaBan: "Gửi kèm câu hỏi làm ngữ cảnh.",
+    },
   },
 
   placeholder: {

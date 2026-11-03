@@ -72,12 +72,21 @@ export function ProfileSheet({
   );
 }
 
-function ProfileForm({ hoSo, onSave }: { hoSo: HoSo; onSave: (h: HoSo) => void }) {
+export function ProfileForm({
+  hoSo,
+  onSave,
+  film,
+}: {
+  hoSo: HoSo;
+  onSave: (h: HoSo) => void;
+  film?: string;
+}) {
   const t = useT();
   const [draft, setDraft] = useState(hoSo);
   const id = useId();
   return (
     <form
+      data-film={film}
       className="flex flex-col gap-5"
       onSubmit={(e) => {
         e.preventDefault();

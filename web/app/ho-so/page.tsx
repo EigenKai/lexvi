@@ -1,5 +1,5 @@
-import { Placeholder } from "@/components/shell/placeholder";
+import { ProfileScreen } from "@/components/profile/profile-screen";
 
-export default function Page() {
-  return <Placeholder titleKey="profile" />;
+export default function ProfilePage() {
+  return <ProfileScreen />;
 }

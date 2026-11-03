@@ -474,6 +474,9 @@ same frames on every take.
   `profile-sheet`, `disclaimer`, `mock-flag`, `nav-{ask|canh-bao|ho-so|kiem-thu}` (left rail, ≥1024) and
   `nav-mobile-{…}` (bottom nav, <1024). The ribbon repeated inside the drawer uses the `drawer-` prefix
   (`drawer-verification-ribbon`, `drawer-attempt-counter`, `drawer-check-*`) so every hook is unique on screen.
+  Ask (real backend): `run-meta`, `drawer-claim`, `relation-list`. Benchmark (`/kiem-thu`): `benchmark-panel`,
+  `benchmark-metric-{dan_dieu_cu|dung_can_cu|trich_sai|can_xac_nhan}`, `benchmark-table`, `benchmark-empty`.
+  Profile (`/ho-so`): `profile-form`, `profile-saved`.
   Impact screen (`/canh-bao`): `drop-zone`, `choose-button`, `sample-button`, `scan`, `impact-alert`, `impact-rule`,
   `impact-row-{i}`, `impact-affects-{i}`, `impact-tasks`, `impact-dropped`; shell: `lang-toggle`.
   Never rename one without updating the capture scripts.

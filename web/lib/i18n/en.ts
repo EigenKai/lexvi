@@ -52,6 +52,8 @@ export const en: Dict = {
     searching: "Finding the articles in force on the applied date…",
     error: "Couldn't get an answer. Please try again.",
     empty: "Type a question or pick a sample question to start.",
+    elapsed: (s: number) => `${s} s`,
+    runMeta: (steps: number, secs: number) => `${steps} steps · ${secs} s`,
   },
 
   appliedDate: {
@@ -116,6 +118,14 @@ export const en: Dict = {
     dan_chieu: "refers to",
   },
 
+  relationBy: {
+    sua_doi: "amended by",
+    thay_the: "replaced by",
+    bai_bo: "repealed by",
+    huong_dan: "guided by",
+    dan_chieu: "referred to by",
+  },
+
   verify: {
     title: "Checked before answering",
     attempt: (n: number, max: number) => `attempt ${n}/${max}`,
@@ -137,9 +147,16 @@ export const en: Dict = {
     statusNeedsConfirm:
       "All checks passed, but a cited article is not in force on the applied date — needs accountant confirmation.",
     finalOnly: "The server returned the final result only.",
+    unresolved: "Remaining issues",
   },
 
   drawer: {
+    supports: "Supports the claim",
+    relations: "Documents acting on this article",
+    noRelations: "No stored document amends this article.",
+    relFrom: (d: string) => `from ${d}`,
+    relPending: "not yet applicable on your date",
+    backendStatus: "Server says",
     close: "Close",
     document: "Document",
     issued: "Issued",
@@ -201,6 +218,51 @@ export const en: Dict = {
     droppedHint:
       "LexVi only shows changes whose excerpt appears verbatim in the new document and that point to a stored article.",
     another: "Read another document",
+  },
+
+  bench: {
+    title: "Benchmark: LexVi vs plain RAG",
+    subtitle:
+      "Same questions, same stored articles, same model. Results are counts of questions, not percentages.",
+    emptyTitle: "No results yet",
+    emptyBody:
+      "Results appear after scripts/run_eval.py runs on the team-written test set, once the legal corpus is loaded.",
+    rag: "Plain RAG",
+    lexvi: "LexVi",
+    lower: "lower is better",
+    higher: "higher is better",
+    reference: "for reference",
+    metrics: {
+      dan_dieu_cu: "Cited an article not in force on the date",
+      dung_can_cu: "Cited the correct legal basis",
+      trich_sai: "Quote not verbatim",
+      can_xac_nhan: "Flagged for an accountant",
+    },
+    table: "Per question",
+    colQ: "Question",
+    colDate: "Applied on",
+    outdated: "Cited outdated",
+    notOutdated: "No",
+    footer: (n: number, model: string, date: string) =>
+      `Team-written test set · ${n} questions · model ${model} · run on ${date}`,
+    source: "Results file",
+    note: "Small sample: read these as counts, not general rates.",
+  },
+
+  profilePage: {
+    title: "Business profile",
+    subtitle: "LexVi sends this profile with every question and every new document you add.",
+    saved: "Profile saved.",
+    stored: "The profile is stored in this browser only.",
+    howTitle: "How LexVi uses this",
+    how: {
+      loaiHinh:
+        "Tells LexVi which set of rules to look up: household business or small enterprise.",
+      doanhThu:
+        "Compared with revenue thresholds, such as the tax-exempt level or the e-invoice requirement.",
+      nganh: "Sent with your question so the rules for your sector are found.",
+      diaBan: "Sent with your question as context.",
+    },
   },
 
   placeholder: {

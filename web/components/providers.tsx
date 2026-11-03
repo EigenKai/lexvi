@@ -100,9 +100,53 @@ interface ProfileCtx {
 }
 const ProfileContext = createContext<ProfileCtx>({ hoSo: DEFAULT_PROFILE, setHoSo: () => {} });
 
+const PROFILE_KEY = "lexvi.profile";
+
+/** Schema check for a stored profile; anything malformed is ignored. */
+function readStoredProfile(): HoSo | null {
+  try {
+    const v: unknown = JSON.parse(window.localStorage.getItem(PROFILE_KEY) ?? "null");
+    if (typeof v !== "object" || v === null) return null;
+    const o = v as Record<string, unknown>;
+    if (o.loai_hinh !== "ho_kinh_doanh" && o.loai_hinh !== "doanh_nghiep_nho") return null;
+    if (
+      typeof o.doanh_thu_nam !== "number" ||
+      !Number.isFinite(o.doanh_thu_nam) ||
+      o.doanh_thu_nam < 0
+    )
+      return null;
+    return {
+      loai_hinh: o.loai_hinh,
+      nganh: typeof o.nganh === "string" ? o.nganh.slice(0, 200) : "",
+      doanh_thu_nam: Math.round(o.doanh_thu_nam),
+      dia_ban: typeof o.dia_ban === "string" ? o.dia_ban.slice(0, 200) : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+const isFilm = () => new URLSearchParams(window.location.search).get("film") === "1";
+
 function ProfileProvider({ children }: { children: ReactNode }) {
-  const [hoSo, setHoSo] = useState<HoSo>(DEFAULT_PROFILE);
-  const value = useMemo(() => ({ hoSo, setHoSo }), [hoSo]);
+  const [hoSo, setHoSoState] = useState<HoSo>(DEFAULT_PROFILE);
+  // Outside film mode the profile survives reloads (this browser only). Film takes always start
+  // from the default persona so every recording is identical.
+  useEffect(() => {
+    if (isFilm()) return;
+    const stored = readStoredProfile();
+    if (stored) setHoSoState(stored);
+  }, []);
+  const setHoSo = useCallback((h: HoSo) => {
+    setHoSoState(h);
+    if (isFilm()) return;
+    try {
+      window.localStorage.setItem(PROFILE_KEY, JSON.stringify(h));
+    } catch {
+      // not persisted; still applies for this session
+    }
+  }, []);
+  const value = useMemo(() => ({ hoSo, setHoSo }), [hoSo, setHoSo]);
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 

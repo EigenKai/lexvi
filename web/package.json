@@ -10,7 +10,8 @@
     "lint": "biome ci .",
     "format": "biome check --write .",
     "typecheck": "next typegen && tsc --noEmit",
-    "check": "pnpm lint && pnpm typecheck && pnpm build"
+    "check": "pnpm lint && pnpm typecheck && pnpm build",
+    "benchmark:import": "node scripts/import-benchmark.mjs"
   },
   "dependencies": {
     "cn": "0.5.2",

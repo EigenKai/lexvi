@@ -106,6 +106,19 @@ function viewWord(t: Dict, v: StepView): string {
   }[v];
 }
 
+function UnresolvedList({ items, title }: { items: string[]; title: string }) {
+  return (
+    <div className="mt-2 w-full basis-full text-sm">
+      <p className="font-medium text-ink-2">{title}</p>
+      <ul lang="vi" className="mt-1 list-disc pl-5 text-ink-2">
+        {items.map((p) => (
+          <li key={p}>{p}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function VerificationRibbon({
   attempts,
   canXacNhan,
@@ -114,6 +127,7 @@ export function VerificationRibbon({
   onDone,
   className,
   filmPrefix = "",
+  unresolved,
   heading: Heading = "h2",
 }: {
   attempts: LanKiemChung[] | undefined;
@@ -126,6 +140,8 @@ export function VerificationRibbon({
   className?: string;
   /** Prefix for data-film hooks, so a second ribbon (in the drawer) doesn't duplicate them. */
   filmPrefix?: string;
+  /** Problems left after the last refusal (backend van_de_chua_giai_quyet), shown when not passed. */
+  unresolved?: string[];
   heading?: "h2" | "h3";
 }) {
   const t = useT();
@@ -184,7 +200,7 @@ export function VerificationRibbon({
         data-film={`${filmPrefix}verification-ribbon`}
         aria-label={t.verify.title}
         className={cn(
-          "flex items-center gap-2 rounded-lg border px-4 py-3 text-sm",
+          "flex flex-wrap items-center gap-2 rounded-lg border px-4 py-3 text-sm",
           canXacNhan
             ? "border-amber/30 bg-amber-tint text-amber"
             : "border-jade/30 bg-jade-tint text-jade",
@@ -200,6 +216,9 @@ export function VerificationRibbon({
           {canXacNhan ? t.status.can_xac_nhan : t.status.verified}
         </span>
         <span className="text-ink-3">· {t.verify.finalOnly}</span>
+        {canXacNhan && unresolved && unresolved.length > 0 && (
+          <UnresolvedList items={unresolved} title={t.verify.unresolved} />
+        )}
       </section>
     );
   }
@@ -289,6 +308,9 @@ export function VerificationRibbon({
                 ? t.verify.gaveUp
                 : t.verify.notPassed}
           </p>
+        )}
+        {finalFail && unresolved && unresolved.length > 0 && (
+          <UnresolvedList items={unresolved} title={t.verify.unresolved} />
         )}
       </div>
 

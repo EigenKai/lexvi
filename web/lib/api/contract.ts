@@ -177,3 +177,52 @@ export interface IngestResponse {
   /** Always true: a new regulation is confirmed by an accountant before acting. */
   can_xac_nhan: true;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   UI view models (not wire formats). Built by lib/api/adapter.ts from the real backend
+   (POST /ask + GET /runs/{run_id}) or from the mocks, so the UI has a single code path.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/** Everything the citation chip and drawer may show. Unknown fields are left out, not guessed. */
+export interface CitationView {
+  id: string;
+  cau_trich: string;
+  trang: number;
+  /** The claim this quote supports (backend `nhan_dinh`). */
+  nhan_dinh?: string;
+  so_hieu?: string;
+  loai?: string;
+  tieu_de?: string;
+  ngay_ban_hanh?: IsoDate;
+  hieu_luc_tu?: IsoDate;
+  het_hieu_luc?: IsoDate | null;
+  nguon_url?: string;
+  /** Article and clause as strings ("10a" happens). */
+  dieu?: string;
+  khoan?: string;
+  noi_dung?: string;
+  /** Legal status on the applied date, when known. */
+  trang_thai?: TrangThai;
+  /** The backend's own wording of the status (e.g. "đã bị sua_doi bởi …"). */
+  tinh_trang_text?: string;
+  /** Full chain with document dates (mock / future endpoint). */
+  chuoi?: NutChuoi[];
+  /** Direct relations acting on this provision (real backend `chuoi_sua_doi`). */
+  quan_he?: QuanHe[];
+}
+
+export interface RunMeta {
+  run_id?: string;
+  /** answered | needs_review | running | api_error */
+  trang_thai?: string;
+  so_luot?: number;
+  thoi_gian_giay?: number;
+  /** Problems left after the last refusal (backend `van_de_chua_giai_quyet`). */
+  van_de?: string[];
+}
+
+export interface AskResult {
+  response: AskResponseMoRong;
+  views: Record<string, CitationView>;
+  meta: RunMeta;
+}
