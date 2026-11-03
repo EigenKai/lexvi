@@ -460,16 +460,22 @@ same frames on every take.
 - **Film mode: `?film=1`** (`lib/film.ts`). Deterministic: fixed "today" (`&today=2026-11-04` by default),
   fixed mock latency (900 ms), no random IDs, no text caret, hidden scrollbars (`html[data-film-mode]` in
   `globals.css`). Other parameters: `&date=` initial applied date, `&q=` prefilled question,
-  `&scenario=verified|unverified` force a mock scenario, `&autoplay=1` submit after ~0.8 s, `&pace=2` slow the
+  `&scenario=verified|unverified` force a mock scenario, `&autoplay=1` submit after ~0.8 s (on `/canh-bao`: run the sample document), `&pace=2` slow the
   VerificationRibbon (0.5–4×) so the checks read on camera. Example:
   `/?film=1&autoplay=1&q=Quán cà phê của tôi doanh thu khoảng 800 triệu một năm thì có phải nộp thuế không?&pace=2`
-- **Stable hooks: `data-film="…"`** on everything the film outlines: `ask-bar`, `profile-chip`, `applied-date`,
+- **Language:** the UI opens in **English by default** (decided 3/11 so judges can read it); `?lang=vi|en` forces a
+  language, and `?film=1` ignores the viewer's saved choice so takes stay identical. Legal text, quotes, answers
+  and tasks stay Vietnamese (the source language); in English a one-line note says so. Strings live in
+  `lib/i18n/{en,vi}.ts` (same shape, checked by the `Dict` type).
+- **Stable hooks: `data-film="…"`** on everything the film outlines: `ask-bar`, `profile-chip` (`profile-chip-mobile` in the page header below 640 px), `applied-date`,
   `mic-button`, `photo-button`, `send-button`, `suggestion-{i}`, `mock-badge`, `verification-ribbon`,
   `attempt-counter`, `check-{ton_tai|con_hieu_luc|khop_nguyen_van|mo_hinh_danh_gia}`, `answer`,
   `answer-status`, `citation-chip-{i}`, `checklist`, `drawer`, `amendment-chain`, `chain-node-{i}`,
   `profile-sheet`, `disclaimer`, `mock-flag`, `nav-{ask|canh-bao|ho-so|kiem-thu}` (left rail, ≥1024) and
   `nav-mobile-{…}` (bottom nav, <1024). The ribbon repeated inside the drawer uses the `drawer-` prefix
   (`drawer-verification-ribbon`, `drawer-attempt-counter`, `drawer-check-*`) so every hook is unique on screen.
+  Impact screen (`/canh-bao`): `drop-zone`, `choose-button`, `sample-button`, `scan`, `impact-alert`, `impact-rule`,
+  `impact-row-{i}`, `impact-affects-{i}`, `impact-tasks`, `impact-dropped`; shell: `lang-toggle`.
   Never rename one without updating the capture scripts.
 - **Capture viewport:** 1440×900 CSS px at deviceScaleFactor 2 (≥1024 layout: left rail + right drawer). Phone
   shots: 390×844.
@@ -478,7 +484,7 @@ same frames on every take.
 - **Honesty:** while the app runs on mocks the "Dữ liệu minh hoạ · chưa kết nối máy chủ" badge, the `mock-flag` in
   the always-visible disclaimer bar and the drawer's "Nội dung minh hoạ" note stay visible. Don't hide them in film mode. Record final footage only on A's verified
   data or B's live backend (constraints.md kill criteria).
-- **Mobile AskBar:** below 640 px the AskBar moves to the end of the column and sticks above the disclaimer and
+- **Mobile AskBar:** below 640 px the AskBar (without the profile chip, which moves to the page header) moves to the end of the column and sticks above the disclaimer and
   bottom nav (§8); the applied-date picker stays near the top.
 - **Deviation from §4.5/§8:** the AmendmentChain is **vertical inside the 480 px drawer** at every width (five
   nodes don't fit across 480 px without scrolling, which reads badly on camera). The component also supports

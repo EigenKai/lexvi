@@ -1,13 +1,14 @@
 "use client";
 
-import { FlaskConical, Loader2 } from "lucide-react";
-import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
+import { Loader2 } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ask, getCitationDetail, usingMock } from "@/lib/api/client";
+import { useProfile, useT } from "@/components/providers";
+import { MockBanner } from "@/components/shell/mock-banner";
+import { ask, getCitationDetail } from "@/lib/api/client";
 import type { AskResponseMoRong, HoSo, IsoDate } from "@/lib/api/contract";
 import { MOCK_SUGGESTIONS } from "@/lib/api/mock";
 import { type FilmConfig, readFilmConfig } from "@/lib/film";
-import { vi } from "@/lib/i18n/vi";
 import { citationStatus, isCitableStatus } from "@/lib/legal-status";
 import { presence, presenceReduced } from "@/lib/motion";
 import { AnswerCard } from "./answer-card";
@@ -17,14 +18,6 @@ import type { ResolvedCitation } from "./citation-chip";
 import { CitationDrawer } from "./citation-drawer";
 import { ProfileChip, ProfileSheet } from "./profile";
 import { VerificationRibbon } from "./verification-ribbon";
-
-// MOCK — the persona's profile (CLAUDE.md §3). [ILLUSTRATIVE] revenue figure.
-const DEFAULT_PROFILE: HoSo = {
-  loai_hinh: "ho_kinh_doanh",
-  nganh: "Ăn uống (quán cà phê)",
-  doanh_thu_nam: 800_000_000,
-  dia_ban: "TP. Hồ Chí Minh",
-};
 
 type Phase = "idle" | "searching" | "verifying" | "done" | "error";
 
@@ -41,11 +34,12 @@ interface Result {
 }
 
 export function AskScreen() {
+  const t = useT();
   const [film] = useState<FilmConfig>(() => readFilmConfig(window.location.search));
   const reduced = useReducedMotion();
 
   const [applied, setApplied] = useState<IsoDate>(film.initialDate ?? film.today);
-  const [hoSo, setHoSo] = useState<HoSo>(DEFAULT_PROFILE);
+  const { hoSo, setHoSo } = useProfile();
   const [question, setQuestion] = useState(film.question ?? "");
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<Result | null>(null);
@@ -146,25 +140,21 @@ export function AskScreen() {
   const variants = reduced ? presenceReduced : presence;
 
   return (
-    <MotionConfig reducedMotion="user">
+    <>
       <div className="mx-auto flex w-full max-w-[720px] flex-col gap-6 px-6 pt-10 pb-16 max-sm:px-4 max-sm:pt-6">
         <header className="flex flex-col gap-2">
-          {usingMock && (
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <p
-                data-film="mock-badge"
-                className="inline-flex w-fit items-center gap-1.5 rounded-full border border-dashed border-line-strong px-2.5 py-0.5 text-xs font-medium text-ink-2"
-              >
-                <FlaskConical aria-hidden className="size-3.5" />
-                {vi.mockBadge}
-              </p>
-              <p className="text-xs text-ink-3">{vi.mockNote}</p>
-            </div>
-          )}
+          <MockBanner />
           <h1 className="font-display text-[2rem] leading-[1.3] font-normal tracking-[-0.01em] text-ink max-sm:text-[1.625rem] max-sm:font-semibold max-sm:tracking-normal">
-            {vi.ask.title}
+            {t.ask.title}
           </h1>
-          <p className="text-ink-2">{vi.ask.subtitle}</p>
+          <p className="text-ink-2">{t.ask.subtitle}</p>
+          <div className="mt-1 sm:hidden">
+            <ProfileChip
+              hoSo={hoSo}
+              onEdit={() => setProfileOpen(true)}
+              film="profile-chip-mobile"
+            />
+          </div>
         </header>
 
         {/* <640: the AskBar moves to the end and sticks above the disclaimer + bottom nav
@@ -184,8 +174,8 @@ export function AskScreen() {
         </div>
 
         {phase === "idle" && !result && (
-          <section aria-label={vi.ask.suggestions} className="flex flex-col gap-2">
-            <h2 className="text-sm font-semibold text-ink-2">{vi.ask.suggestions}</h2>
+          <section aria-label={t.ask.suggestions} className="flex flex-col gap-2">
+            <h2 className="text-sm font-semibold text-ink-2">{t.ask.suggestions}</h2>
             <ul className="flex flex-col gap-2">
               {MOCK_SUGGESTIONS.map((s, i) => (
                 <li key={s}>
@@ -207,11 +197,11 @@ export function AskScreen() {
         )}
 
         <div aria-live="polite" className="sr-only">
-          {phase === "searching" && vi.ask.searching}
-          {phase === "error" && vi.ask.error}
+          {phase === "searching" && t.ask.searching}
+          {phase === "error" && t.ask.error}
           {phase === "done" &&
             result &&
-            `${vi.answerReady} ${result.needsConfirm ? vi.status.can_xac_nhan : vi.status.verified}.`}
+            `${t.answerReady} ${result.needsConfirm ? t.status.can_xac_nhan : t.status.verified}.`}
         </div>
 
         <AnimatePresence mode="wait">
@@ -225,7 +215,7 @@ export function AskScreen() {
               className="flex items-center gap-2 text-sm text-ink-2"
             >
               <Loader2 aria-hidden className="size-4 text-brand motion-safe:animate-spin" />
-              {vi.ask.searching}
+              {t.ask.searching}
             </motion.p>
           )}
           {phase === "error" && (
@@ -237,7 +227,7 @@ export function AskScreen() {
               exit="gone"
               className="text-sm text-crimson"
             >
-              {vi.ask.error}
+              {t.ask.error}
             </motion.p>
           )}
           {result && (phase === "verifying" || phase === "done") && (
@@ -279,6 +269,6 @@ export function AskScreen() {
         onClose={() => setProfileOpen(false)}
         onSave={saveProfile}
       />
-    </MotionConfig>
+    </>
   );
 }

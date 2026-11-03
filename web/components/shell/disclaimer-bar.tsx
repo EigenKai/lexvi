@@ -1,13 +1,16 @@
+"use client";
+
 import { FlaskConical, Info } from "lucide-react";
+import { useT } from "@/components/providers";
 import { usingMock } from "@/lib/api/client";
-import { vi } from "@/lib/i18n/vi";
 
 /**
  * DESIGN.md §4.13 — persistent, every app screen, not dismissible.
- * While the app runs on mocks it also carries a "Dữ liệu minh hoạ" flag, so mock output is
+ * While the app runs on mocks it also carries an "illustrative data" flag, so mock output is
  * marked in every frame of a recording, not only at the top of the page (constraints.md).
  */
 export function DisclaimerBar() {
+  const t = useT();
   return (
     <div
       data-film="disclaimer"
@@ -16,15 +19,15 @@ export function DisclaimerBar() {
     >
       <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-ink-3" />
       <p>
-        <span className="max-sm:hidden">{vi.disclaimer.vi}</span>
-        <span className="sm:hidden">{vi.disclaimer.short}</span>
+        <span className="max-sm:hidden">{t.disclaimer.full}</span>
+        <span className="sm:hidden">{t.disclaimer.short}</span>
         {usingMock && (
           <span
             data-film="mock-flag"
             className="ml-2 inline-flex items-center gap-1 rounded-full border border-dashed border-line-strong px-2 align-middle text-xs font-medium whitespace-nowrap"
           >
             <FlaskConical aria-hidden className="size-3" />
-            {vi.mockFlag}
+            {t.mockFlag}
           </span>
         )}
       </p>

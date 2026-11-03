@@ -1,6 +1,5 @@
-import { Placeholder } from "@/components/shell/placeholder";
-import { vi } from "@/lib/i18n/vi";
+import { ImpactScreenClient } from "@/components/impact/impact-screen-client";
 
-export default function Page() {
-  return <Placeholder title={vi.nav.alerts} />;
+export default function AlertsPage() {
+  return <ImpactScreenClient />;
 }

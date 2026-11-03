@@ -2,9 +2,9 @@
 
 import { UserCheck } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import { useT } from "@/components/providers";
 import type { AskResponseMoRong, IsoDate } from "@/lib/api/contract";
 import { formatDate } from "@/lib/format";
-import { vi } from "@/lib/i18n/vi";
 import { presence, presenceReduced } from "@/lib/motion";
 import { StatusBadge } from "../status";
 import { Checklist } from "./checklist";
@@ -24,6 +24,7 @@ export function AnswerCard({
   today: IsoDate;
   onOpenCitation: (id: string) => void;
 }) {
+  const t = useT();
   const reduced = useReducedMotion();
   const variants = reduced ? presenceReduced : presence;
 
@@ -43,10 +44,10 @@ export function AnswerCard({
             id="answer-heading"
             className="font-display text-[1.375rem] leading-[1.35] font-semibold"
           >
-            {vi.answer.heading}
+            {t.answer.heading}
           </h2>
           <p className="text-sm text-ink-3">
-            {vi.answer.forDate}{" "}
+            {t.answer.forDate}{" "}
             <span className="font-mono text-ink-2 tabular-nums">{formatDate(applied)}</span>
           </p>
         </div>
@@ -54,15 +55,18 @@ export function AnswerCard({
           {response.can_xac_nhan ? (
             <StatusBadge status="can_xac_nhan" />
           ) : (
-            <StatusBadge status="con_hieu_luc" label={vi.status.verified} />
+            <StatusBadge status="con_hieu_luc" label={t.status.verified} />
           )}
         </span>
       </header>
 
-      <p className="mt-4 text-[1.125rem] leading-[1.6] text-ink">{response.tra_loi}</p>
+      <p lang="vi" className="mt-4 text-[1.125rem] leading-[1.6] text-ink">
+        {response.tra_loi}
+      </p>
+      {t.sourceNote && <p className="mt-1 text-xs text-ink-3">{t.sourceNote}</p>}
 
-      <section className="mt-5" aria-label={vi.answer.citations}>
-        <h3 className="mb-2 text-sm font-semibold text-ink-2">{vi.answer.citations}</h3>
+      <section className="mt-5" aria-label={t.answer.citations}>
+        <h3 className="mb-2 text-sm font-semibold text-ink-2">{t.answer.citations}</h3>
         <motion.ul
           className="flex flex-wrap gap-2"
           initial="hidden"
@@ -83,8 +87,8 @@ export function AnswerCard({
         </motion.ul>
       </section>
 
-      <section className="mt-6" aria-label={vi.answer.checklist}>
-        <h3 className="mb-3 text-sm font-semibold text-ink-2">{vi.answer.checklist}</h3>
+      <section className="mt-6" aria-label={t.answer.checklist}>
+        <h3 className="mb-3 text-sm font-semibold text-ink-2">{t.answer.checklist}</h3>
         <Checklist
           items={response.checklist}
           today={today}
@@ -102,7 +106,7 @@ export function AnswerCard({
               : "mt-0.5 size-4 shrink-0 text-ink-3"
           }
         />
-        {vi.answer.accountantStep}
+        {t.answer.accountantStep}
       </p>
     </motion.article>
   );

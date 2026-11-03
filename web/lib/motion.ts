@@ -33,6 +33,9 @@ export const presence: Variants = {
     filter: "blur(0px)",
     y: 0,
     transition: { duration: duration.enter, ease: ease.settle },
+    // Drop the filter once settled: a lingering blur(0px) keeps the element on its own GPU
+    // layer, which costs memory and makes anti-aliasing vary between otherwise identical takes.
+    transitionEnd: { filter: "none" },
   },
   gone: {
     opacity: 0,

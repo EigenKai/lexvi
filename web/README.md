@@ -14,6 +14,17 @@ the other team members.
 > every answer, citation, date and figure on screen is illustrative and has not been checked
 > against the original legal texts. The app shows a "Dữ liệu minh hoạ" flag while in this mode.
 
+## Screens
+
+- **Ask** (`/`): question, business profile and applied date → answer with verified citations, the amendment
+  chain and a checklist.
+- **New regulation affecting you** (`/canh-bao`): drop a new legal PDF → `POST /ingest` → the articles it
+  changes (old text → new text), whether each affects this business, tasks, and changes dropped by verification.
+- Benchmark and profile screens: in progress.
+
+The UI opens in **English**; the EN | VI toggle switches to Vietnamese (`?lang=vi` in the URL also works).
+Legal text, quotes and answers stay in Vietnamese, the language of the source law.
+
 ## Built during the hackathon
 
 All code in this repository was written during the hackathon, starting 03/11/2026 (the event began

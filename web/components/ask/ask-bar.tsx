@@ -4,8 +4,8 @@ import { cn } from "cn";
 import { ArrowUp, ImagePlus, Loader2, Mic, Plus, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useT } from "@/components/providers";
 import { MOCK_TRANSCRIPT } from "@/lib/api/mock";
-import { vi } from "@/lib/i18n/vi";
 import { duration, ease } from "@/lib/motion";
 
 type MicState = "idle" | "listening" | "transcribing" | "error";
@@ -62,6 +62,7 @@ export function AskBar({
   profile: ReactNode;
   textareaRef?: React.RefObject<HTMLTextAreaElement | null>;
 }) {
+  const t = useT();
   const [mic, setMic] = useState<MicState>("idle");
   const [photo, setPhoto] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -92,7 +93,7 @@ export function AskBar({
   const extras = (
     <>
       <IconButton
-        label={vi.mic.idle}
+        label={t.mic.idle}
         onClick={startMic}
         film="mic-button"
         pressed={mic === "listening"}
@@ -118,7 +119,7 @@ export function AskBar({
         )}
       </IconButton>
       <IconButton
-        label={vi.photo.label}
+        label={t.photo.label}
         onClick={() => fileRef.current?.click()}
         film="photo-button"
       >
@@ -150,10 +151,11 @@ export function AskBar({
         }}
         className="flex flex-col gap-2 rounded-lg border border-line-strong bg-surface p-2 shadow-card focus-within:border-brand focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brand"
       >
-        <div className="px-1 pt-1">{profile}</div>
+        {/* <640 the chip sits in the page header instead, so the sticky bar stays slim. */}
+        <div className="px-1 pt-1 max-sm:hidden">{profile}</div>
         <div className="flex items-end gap-1">
           <label htmlFor="ask-input" className="sr-only">
-            {vi.ask.inputLabel}
+            {t.ask.inputLabel}
           </label>
           <textarea
             id="ask-input"
@@ -167,13 +169,13 @@ export function AskBar({
               }
             }}
             rows={2}
-            placeholder={vi.ask.placeholder}
-            className="min-h-16 flex-1 resize-none bg-transparent px-2 py-2 text-[1.0625rem] leading-[1.6] text-ink outline-none placeholder:text-ink-3 focus-visible:outline-none"
+            placeholder={t.ask.placeholder}
+            className="min-h-16 max-h-48 flex-1 resize-none [field-sizing:content] [scrollbar-width:thin] max-sm:min-h-12 max-sm:max-h-36 bg-transparent px-2 py-2 text-[1.0625rem] leading-[1.6] text-ink outline-none placeholder:text-ink-3 focus-visible:outline-none"
           />
           <div className="flex items-center gap-1 max-sm:hidden">{extras}</div>
           <div className="sm:hidden">
             <IconButton
-              label={vi.ask.more}
+              label={t.ask.more}
               onClick={() => setMoreOpen((o) => !o)}
               pressed={moreOpen}
             >
@@ -186,7 +188,7 @@ export function AskBar({
           <button
             type="submit"
             disabled={!canSend}
-            aria-label={vi.ask.send}
+            aria-label={t.ask.send}
             data-film="send-button"
             className="inline-flex size-11 shrink-0 items-center justify-center rounded-md bg-brand text-white transition-[opacity,transform] duration-[120ms] active:scale-[0.97] disabled:opacity-40"
           >
@@ -213,18 +215,18 @@ export function AskBar({
       </form>
 
       <div aria-live="polite" className="min-h-0 px-1 text-sm">
-        {mic === "listening" && <p className="text-brand">{vi.mic.listening}</p>}
-        {mic === "transcribing" && <p className="text-ink-2">{vi.mic.transcribing}</p>}
-        {mic === "error" && <p className="text-amber">{vi.mic.error}</p>}
+        {mic === "listening" && <p className="text-brand">{t.mic.listening}</p>}
+        {mic === "transcribing" && <p className="text-ink-2">{t.mic.transcribing}</p>}
+        {mic === "error" && <p className="text-amber">{t.mic.error}</p>}
         {photo && (
           <p className="flex items-center gap-2 text-ink-2">
             <ImagePlus aria-hidden className="size-4" />
-            {vi.photo.attached}: <span className="font-mono text-xs">{photo}</span>
-            <span className="text-ink-3">({vi.photo.notConnected})</span>
+            {t.photo.attached}: <span className="font-mono text-xs">{photo}</span>
+            <span className="text-ink-3">({t.photo.notConnected})</span>
             <button
               type="button"
               onClick={() => setPhoto(null)}
-              aria-label={vi.photo.remove}
+              aria-label={t.photo.remove}
               className="inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-sunk"
             >
               <X aria-hidden className="size-4" />

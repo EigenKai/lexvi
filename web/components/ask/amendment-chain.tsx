@@ -3,9 +3,10 @@
 import { cn } from "cn";
 import { BadgeCheck, CircleSlash, Clock, History } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import { useT } from "@/components/providers";
 import type { IsoDate, NutChuoi } from "@/lib/api/contract";
 import { docLabel, formatDate } from "@/lib/format";
-import { vi } from "@/lib/i18n/vi";
+import type { Dict } from "@/lib/i18n";
 import {
   appliesFrom,
   chainStates,
@@ -17,12 +18,14 @@ import { duration, ease } from "@/lib/motion";
 
 const EDGE_STAGGER = 0.22;
 
-const STATE_WORD: Record<NodeState, string> = {
-  current: vi.status.con_hieu_luc,
-  superseded: vi.status.da_sua_doi,
-  expired: vi.status.het_hieu_luc,
-  future: vi.status.notYet,
-};
+function stateWord(t: Dict, s: NodeState): string {
+  return {
+    current: t.status.con_hieu_luc,
+    superseded: t.status.da_sua_doi,
+    expired: t.status.het_hieu_luc,
+    future: t.status.notYet,
+  }[s];
+}
 
 function Strike({ on, delay, animate }: { on: boolean; delay: number; animate: boolean }) {
   if (!on) return null;
@@ -77,6 +80,7 @@ export function AmendmentChain({
   orientation?: "vertical" | "horizontal";
   citedSoHieu?: string;
 }) {
+  const t = useT();
   const reduced = useReducedMotion();
   const animate = !reduced;
   const states = chainStates(chain, applied);
@@ -89,7 +93,7 @@ export function AmendmentChain({
   return (
     <ol
       data-film="amendment-chain"
-      aria-label={vi.drawer.chain}
+      aria-label={t.drawer.chain}
       className={cn(vertical ? "flex flex-col" : "flex items-start gap-0 overflow-x-auto pb-2")}
     >
       {chain.map((n, i) => {
@@ -142,7 +146,7 @@ export function AmendmentChain({
                     vertical ? "self-center pl-4" : "mt-1",
                   )}
                 >
-                  {vi.relation[n.quan_he]}
+                  {t.relation[n.quan_he]}
                 </span>
               </div>
             )}
@@ -195,7 +199,7 @@ export function AmendmentChain({
                           : "text-crimson",
                     )}
                   >
-                    {STATE_WORD[state]}
+                    {stateWord(t, state)}
                   </span>
                 </div>
                 <p
@@ -208,15 +212,15 @@ export function AmendmentChain({
                 </p>
                 <p className="mt-0.5 font-mono text-xs text-ink-3 tabular-nums">
                   {(from === n.van_ban.hieu_luc_tu
-                    ? vi.drawer.effectiveFrom
-                    : vi.drawer.appliesFrom
+                    ? t.drawer.effectiveFrom
+                    : t.drawer.appliesFrom
                   ).toLowerCase()}{" "}
                   {formatDate(from)}
                 </p>
                 {retro && (
                   <p className="mt-1 flex items-center gap-1 text-xs text-ink-2">
                     <History aria-hidden className="size-3.5" />
-                    {vi.drawer.issuedRetro(formatDate(n.van_ban.ngay_ban_hanh))}
+                    {t.drawer.issuedRetro(formatDate(n.van_ban.ngay_ban_hanh))}
                   </p>
                 )}
               </div>

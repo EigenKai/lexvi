@@ -5,17 +5,19 @@ import { Bell, FlaskConical, type LucideIcon, MessageSquareText, UserRound } fro
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useRef } from "react";
-import { vi } from "@/lib/i18n/vi";
+import { useT } from "@/components/providers";
 import { DisclaimerBar } from "./disclaimer-bar";
+import { LangToggle } from "./lang-toggle";
 
-const NAV: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/", label: vi.nav.ask, icon: MessageSquareText },
-  { href: "/canh-bao", label: vi.nav.alerts, icon: Bell },
-  { href: "/ho-so", label: vi.nav.profile, icon: UserRound },
-  { href: "/kiem-thu", label: vi.nav.benchmark, icon: FlaskConical },
+const NAV: { href: string; key: "ask" | "alerts" | "profile" | "benchmark"; icon: LucideIcon }[] = [
+  { href: "/", key: "ask", icon: MessageSquareText },
+  { href: "/canh-bao", key: "alerts", icon: Bell },
+  { href: "/ho-so", key: "profile", icon: UserRound },
+  { href: "/kiem-thu", key: "benchmark", icon: FlaskConical },
 ];
 
 function Logo({ className }: { className?: string }) {
+  const t = useT();
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       {/* Brand mark: an open statute page with a jade check — no emblems, nothing official-looking. */}
@@ -36,15 +38,14 @@ function Logo({ className }: { className?: string }) {
           fill="none"
         />
       </svg>
-      <span className="font-display text-lg font-semibold tracking-normal text-ink">
-        {vi.brand}
-      </span>
+      <span className="font-display text-lg font-semibold tracking-normal text-ink">{t.brand}</span>
     </span>
   );
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const t = useT();
   // Height of the sticky footer (disclaimer + bottom nav), so sticky content can sit above it.
   const footer = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -68,14 +69,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link
           href="/"
           className="inline-flex min-h-11 items-center rounded-md px-2"
-          aria-label={`${vi.brand} — ${vi.nav.ask}`}
+          aria-label={`${t.brand} — ${t.nav.ask}`}
         >
           <Logo />
         </Link>
-        <p className="mt-2 px-2 text-sm text-ink-3">{vi.tagline}</p>
-        <nav aria-label={vi.nav.label} className="mt-8">
+        <p className="mt-2 px-2 text-sm text-ink-3">{t.tagline}</p>
+        <nav aria-label={t.nav.label} className="mt-8">
           <ul className="flex flex-col gap-1">
-            {NAV.map(({ href, label, icon: Icon }) => {
+            {NAV.map(({ href, key, icon: Icon }) => {
+              const label = t.nav[key];
               const active = pathname === href;
               return (
                 <li key={href}>
@@ -98,6 +100,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </ul>
         </nav>
+        <div className="mt-auto px-2">
+          <LangToggle />
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -106,10 +111,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link
             href="/"
             className="inline-flex min-h-11 items-center rounded-md"
-            aria-label={`${vi.brand} — ${vi.nav.ask}`}
+            aria-label={`${t.brand} — ${t.nav.ask}`}
           >
             <Logo />
           </Link>
+          <div className="ml-auto">
+            <LangToggle />
+          </div>
         </header>
 
         <main className="flex-1">{children}</main>
@@ -117,9 +125,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div ref={footer} className="sticky bottom-0 z-30">
           <DisclaimerBar />
           {/* Bottom nav <1024 */}
-          <nav aria-label={vi.nav.label} className="border-t border-line bg-paper lg:hidden">
+          <nav aria-label={t.nav.label} className="border-t border-line bg-paper lg:hidden">
             <ul className="grid grid-cols-4">
-              {NAV.map(({ href, label, icon: Icon }) => {
+              {NAV.map(({ href, key, icon: Icon }) => {
+                const label = t.nav[key];
                 const active = pathname === href;
                 return (
                   <li key={href}>

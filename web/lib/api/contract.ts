@@ -128,3 +128,52 @@ export type TrangThai =
   | "het_hieu_luc"
   | "can_xac_nhan"
   | "huong_dan";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   POST /ingest — matches the backend as built (lexvi/ingest.py + lexvi/api.py, commit 7b71ce0),
+   which supersedes the 31/10 `/ingest` sketch: request is multipart `pdf` (file) + `ho_so`
+   (JSON string); every change is checked by code (verbatim excerpt, target exists) before
+   it is returned, and failures are listed in `bi_loai`.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+export type LoaiThayDoi = "sua_doi" | "thay_the" | "bai_bo" | "huong_dan";
+
+export interface VanBanMoi {
+  so_hieu: string;
+  tieu_de: string;
+  /** YYYY-MM-DD as read by the model from the new document. */
+  hieu_luc_tu: string;
+}
+
+export interface ThayDoi {
+  /** One sentence copied verbatim from the new document. */
+  trich_doan: string;
+  loai: LoaiThayDoi;
+  /** Id of the stored provision this change acts on. */
+  dieu_bi_tac_dong: string;
+  anh_huong_toi_ho_so: boolean;
+  giai_thich: string;
+  viec_can_lam: string;
+  /** YYYY-MM-DD, or "" when the document states no deadline. */
+  han: string;
+}
+
+export interface DieuBiAnhHuong extends ThayDoi {
+  dieu_cu: { id: string; so_hieu: string; noi_dung: string };
+}
+
+export interface ViecCanLamIngest {
+  viec: string;
+  han: string;
+  can_cu: string;
+  trich_doan: string;
+}
+
+export interface IngestResponse {
+  van_ban_moi: VanBanMoi;
+  dieu_bi_anh_huong: DieuBiAnhHuong[];
+  viec_can_lam: ViecCanLamIngest[];
+  bi_loai: (ThayDoi & { ly_do: string })[];
+  /** Always true: a new regulation is confirmed by an accountant before acting. */
+  can_xac_nhan: true;
+}

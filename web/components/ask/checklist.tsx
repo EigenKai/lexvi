@@ -3,38 +3,50 @@
 import { cn } from "cn";
 import { CalendarClock, Check, CircleAlert } from "lucide-react";
 import { useState } from "react";
+import { useT } from "@/components/providers";
 import type { ChecklistItem, IsoDate } from "@/lib/api/contract";
 import { daysBetween, formatDate } from "@/lib/format";
-import { vi } from "@/lib/i18n/vi";
+import type { Dict } from "@/lib/i18n";
 import { CitationChip, type ResolvedCitation } from "./citation-chip";
 
-function dueText(days: number): string {
-  if (days < 0) return vi.due.overdue(-days);
-  if (days === 0) return vi.due.today;
-  return vi.due.left(days);
+const ISO = /^\d{4}-\d{2}-\d{2}/;
+
+function dueText(t: Dict, days: number): string {
+  if (days < 0) return t.due.overdue(-days);
+  if (days === 0) return t.due.today;
+  return t.due.left(days);
 }
 
 /** DESIGN.md §4.8 — overdue crimson, ≤ 7 days amber, each with an icon and words. */
 export function Checklist({
   items,
   today,
-  citations,
+  citations = [],
   onOpenCitation,
+  emptyText,
+  film = "checklist",
 }: {
   items: ChecklistItem[];
   today: IsoDate;
-  citations: ResolvedCitation[];
-  onOpenCitation: (id: string) => void;
+  /** Citations to show as chips for `can_cu`; when none matches, `can_cu` shows as a mono label. */
+  citations?: ResolvedCitation[];
+  onOpenCitation?: (id: string) => void;
+  emptyText?: string;
+  film?: string;
 }) {
+  const t = useT();
   const [done, setDone] = useState<Record<number, boolean>>({});
 
-  if (items.length === 0) return <p className="text-sm text-ink-3">{vi.answer.noChecklist}</p>;
+  if (items.length === 0)
+    return <p className="text-sm text-ink-3">{emptyText ?? t.answer.noChecklist}</p>;
 
   return (
-    <ul data-film="checklist" className="flex flex-col divide-y divide-line">
+    <ul data-film={film} className="flex flex-col divide-y divide-line">
       {items.map((item, i) => {
-        const days = daysBetween(today, item.han);
-        const tone = days < 0 ? "overdue" : days <= 7 ? "soon" : "later";
+        // The backend sends han: "" when the law states no deadline.
+        const hasDue = ISO.test(item.han);
+        const days = hasDue ? daysBetween(today, item.han) : 0;
+        const tone = !hasDue ? "none" : days < 0 ? "overdue" : days <= 7 ? "soon" : "later";
         const basis = citations.find((c) => c.trich.id === item.can_cu);
         const id = `task-${i}`;
         return (
@@ -72,19 +84,25 @@ export function Checklist({
                     "inline-flex items-center gap-1 text-sm font-medium tabular-nums",
                     tone === "overdue" && "text-crimson",
                     tone === "soon" && "text-amber",
-                    tone === "later" && "text-ink-2",
+                    (tone === "later" || tone === "none") && "text-ink-2",
                   )}
                 >
-                  {tone === "later" ? (
+                  {tone === "later" || tone === "none" ? (
                     <CalendarClock aria-hidden className="size-4" />
                   ) : (
                     <CircleAlert aria-hidden className="size-4" />
                   )}
-                  {dueText(days)} · {formatDate(item.han)}
+                  {hasDue ? `${dueText(t, days)} · ${formatDate(item.han)}` : t.due.noDeadline}
                 </span>
-                {basis && (
+                {!basis && item.can_cu && (
                   <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 text-xs text-ink-3">
-                    {vi.due.basis}
+                    {t.due.basis}
+                    <span className="truncate font-mono text-ink-2">{item.can_cu}</span>
+                  </span>
+                )}
+                {basis && onOpenCitation && (
+                  <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 text-xs text-ink-3">
+                    {t.due.basis}
                     <CitationChip
                       size="sm"
                       citation={basis}

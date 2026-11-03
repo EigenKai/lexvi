@@ -4,8 +4,9 @@ import { cn } from "cn";
 import { CornerDownLeft, Loader2, ShieldCheck, TriangleAlert } from "lucide-react";
 import { AnimatePresence, motion, useAnimate, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useT } from "@/components/providers";
 import type { LanKiemChung, MaKiemChung } from "@/lib/api/contract";
-import { vi } from "@/lib/i18n/vi";
+import type { Dict } from "@/lib/i18n";
 import { duration, ease } from "@/lib/motion";
 
 export const MAX_ATTEMPTS = 3;
@@ -95,13 +96,15 @@ function StepIcon({ view, animate }: { view: StepView; animate: boolean }) {
   }
 }
 
-const VIEW_WORD: Record<StepView, string> = {
-  pending: "",
-  running: vi.verify.running,
-  pass: vi.verify.passed,
-  fail: vi.verify.failed,
-  skipped: vi.verify.skipped,
-};
+function viewWord(t: Dict, v: StepView): string {
+  return {
+    pending: "",
+    running: t.verify.running,
+    pass: t.verify.passed,
+    fail: t.verify.failed,
+    skipped: t.verify.skipped,
+  }[v];
+}
 
 export function VerificationRibbon({
   attempts,
@@ -125,6 +128,7 @@ export function VerificationRibbon({
   filmPrefix?: string;
   heading?: "h2" | "h3";
 }) {
+  const t = useT();
   const [scope, animateScope] = useAnimate<HTMLElement>();
   const reduced = useReducedMotion();
   const frames = useMemo(() => (attempts ? buildFrames(attempts) : []), [attempts]);
@@ -178,7 +182,7 @@ export function VerificationRibbon({
     return (
       <section
         data-film={`${filmPrefix}verification-ribbon`}
-        aria-label={vi.verify.title}
+        aria-label={t.verify.title}
         className={cn(
           "flex items-center gap-2 rounded-lg border px-4 py-3 text-sm",
           canXacNhan
@@ -193,9 +197,9 @@ export function VerificationRibbon({
           <ShieldCheck aria-hidden className="size-4" />
         )}
         <span className="font-medium">
-          {canXacNhan ? vi.status.can_xac_nhan : vi.status.verified}
+          {canXacNhan ? t.status.can_xac_nhan : t.status.verified}
         </span>
-        <span className="text-ink-3">· {vi.verify.finalOnly}</span>
+        <span className="text-ink-3">· {t.verify.finalOnly}</span>
       </section>
     );
   }
@@ -216,7 +220,7 @@ export function VerificationRibbon({
     <section
       ref={scope}
       data-film={`${filmPrefix}verification-ribbon`}
-      aria-label={vi.verify.title}
+      aria-label={t.verify.title}
       className={cn(
         "relative overflow-hidden rounded-lg border bg-surface shadow-card",
         finalFail || passButFlagged ? "border-amber/40" : "border-line",
@@ -225,7 +229,7 @@ export function VerificationRibbon({
     >
       <div className="flex items-center gap-2 px-4 pt-3 sm:px-5">
         <ShieldCheck aria-hidden className="size-4 text-brand" />
-        <Heading className="text-sm font-semibold text-ink">{vi.verify.title}</Heading>
+        <Heading className="text-sm font-semibold text-ink">{t.verify.title}</Heading>
         <span
           data-film={`${filmPrefix}attempt-counter`}
           className="ml-auto inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-line px-2.5 py-0.5 font-mono text-xs font-medium text-ink-2 tabular-nums"
@@ -238,7 +242,7 @@ export function VerificationRibbon({
               exit={{ y: -8, opacity: 0 }}
               transition={{ duration: duration.ui, ease: ease.ui }}
             >
-              {vi.verify.attempt(current.lan_thu, MAX_ATTEMPTS)}
+              {t.verify.attempt(current.lan_thu, MAX_ATTEMPTS)}
             </motion.span>
           </AnimatePresence>
         </span>
@@ -256,8 +260,8 @@ export function VerificationRibbon({
           >
             <StepIcon view={views[i]} animate={animate} />
             <span className="leading-normal">
-              {vi.verify.steps[ma]}
-              {VIEW_WORD[views[i]] && <span className="sr-only"> — {VIEW_WORD[views[i]]}</span>}
+              {t.verify.steps[ma]}
+              {viewWord(t, views[i]) && <span className="sr-only"> — {viewWord(t, views[i])}</span>}
             </span>
           </li>
         ))}
@@ -268,22 +272,22 @@ export function VerificationRibbon({
           <p className="flex items-start gap-2 text-sm leading-[1.5] text-crimson">
             <CornerDownLeft aria-hidden className="mt-0.5 size-4 shrink-0" />
             <span>
-              <span className="font-medium">{vi.verify.reason}:</span> {failed.ly_do}{" "}
-              {!isLast && <span className="text-ink-3">({vi.verify.sentBack})</span>}
+              <span className="font-medium">{t.verify.reason}:</span> {failed.ly_do}{" "}
+              {!isLast && <span className="text-ink-3">({t.verify.sentBack})</span>}
             </span>
           </p>
         )}
         {finalPass && !passButFlagged && (
-          <p className="text-sm font-medium leading-[1.5] text-jade">{vi.verify.allPassed}</p>
+          <p className="text-sm font-medium leading-[1.5] text-jade">{t.verify.allPassed}</p>
         )}
         {(finalFail || passButFlagged) && (
           <p className="mt-2 flex items-center gap-2 rounded-md bg-amber-tint px-3 py-2 text-sm font-medium text-amber">
             <TriangleAlert aria-hidden className="size-4 shrink-0" />
             {passButFlagged
-              ? vi.verify.statusNeedsConfirm
+              ? t.verify.statusNeedsConfirm
               : attempts.length >= MAX_ATTEMPTS
-                ? vi.verify.gaveUp
-                : vi.verify.notPassed}
+                ? t.verify.gaveUp
+                : t.verify.notPassed}
           </p>
         )}
       </div>

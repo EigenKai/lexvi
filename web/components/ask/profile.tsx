@@ -2,26 +2,42 @@
 
 import { Store } from "lucide-react";
 import { useId, useState } from "react";
+import { useLocale, useT } from "@/components/providers";
 import type { HoSo } from "@/lib/api/contract";
 import { formatVnd, formatVndWords } from "@/lib/format";
-import { vi } from "@/lib/i18n/vi";
 import { Drawer } from "../ui/drawer";
 
 /** DESIGN.md §4.6 — always visible: every answer depends on the profile. */
-export function ProfileChip({ hoSo, onEdit }: { hoSo: HoSo; onEdit: () => void }) {
+export function ProfileChip({
+  hoSo,
+  onEdit,
+  film = "profile-chip",
+}: {
+  hoSo: HoSo;
+  onEdit: () => void;
+  film?: string;
+}) {
+  const t = useT();
+  const { locale } = useLocale();
+  // Vietnamese reads "800 triệu đồng"; English shows the plain amount "800.000.000 ₫".
+  const revenue =
+    locale === "vi" ? formatVndWords(hoSo.doanh_thu_nam) : formatVnd(hoSo.doanh_thu_nam);
   return (
     <button
       type="button"
       onClick={onEdit}
-      data-film="profile-chip"
-      aria-label={`${vi.profile.chipLabel}: ${vi.profile.loai[hoSo.loai_hinh]}, ${hoSo.nganh}, ${formatVndWords(hoSo.doanh_thu_nam)}/năm, ${hoSo.dia_ban}. ${vi.profile.edit}`}
+      data-film={film}
+      aria-label={`${t.profile.chipLabel}: ${t.profile.loai[hoSo.loai_hinh]}, ${hoSo.nganh}, ${revenue}${t.profile.perYear}, ${hoSo.dia_ban}. ${t.profile.edit}`}
       className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border border-brand/20 bg-brand-tint px-3 text-left text-sm text-brand transition-colors hover:border-brand/40"
     >
       <Store aria-hidden className="size-4 shrink-0" />
       <span className="truncate">
-        <span className="font-semibold">{vi.profile.loai[hoSo.loai_hinh]}</span>
+        <span className="font-semibold">{t.profile.loai[hoSo.loai_hinh]}</span>
         <span className="text-ink-2"> · {hoSo.nganh} · </span>
-        <span className="font-medium tabular-nums">{formatVndWords(hoSo.doanh_thu_nam)}/năm</span>
+        <span className="font-medium tabular-nums">
+          {revenue}
+          {t.profile.perYear}
+        </span>
         <span className="text-ink-2 max-sm:hidden"> · {hoSo.dia_ban}</span>
       </span>
     </button>
@@ -42,12 +58,13 @@ export function ProfileSheet({
   onClose: () => void;
   onSave: (h: HoSo) => void;
 }) {
+  const t = useT();
   return (
     <Drawer
       open={open}
       onOpenChange={(o) => !o && onClose()}
-      title={vi.profile.title}
-      description={vi.profile.description}
+      title={t.profile.title}
+      description={t.profile.description}
       film="profile-sheet"
     >
       {open && <ProfileForm hoSo={hoSo} onSave={onSave} />}
@@ -56,6 +73,7 @@ export function ProfileSheet({
 }
 
 function ProfileForm({ hoSo, onSave }: { hoSo: HoSo; onSave: (h: HoSo) => void }) {
+  const t = useT();
   const [draft, setDraft] = useState(hoSo);
   const id = useId();
   return (
@@ -68,7 +86,7 @@ function ProfileForm({ hoSo, onSave }: { hoSo: HoSo; onSave: (h: HoSo) => void }
     >
       <div className="flex flex-col gap-1.5">
         <label htmlFor={`${id}-loai`} className="text-sm font-semibold">
-          {vi.profile.loaiHinh}
+          {t.profile.loaiHinh}
         </label>
         <select
           id={`${id}-loai`}
@@ -76,13 +94,13 @@ function ProfileForm({ hoSo, onSave }: { hoSo: HoSo; onSave: (h: HoSo) => void }
           value={draft.loai_hinh}
           onChange={(e) => setDraft({ ...draft, loai_hinh: e.target.value as HoSo["loai_hinh"] })}
         >
-          <option value="ho_kinh_doanh">{vi.profile.loai.ho_kinh_doanh}</option>
-          <option value="doanh_nghiep_nho">{vi.profile.loai.doanh_nghiep_nho}</option>
+          <option value="ho_kinh_doanh">{t.profile.loai.ho_kinh_doanh}</option>
+          <option value="doanh_nghiep_nho">{t.profile.loai.doanh_nghiep_nho}</option>
         </select>
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor={`${id}-nganh`} className="text-sm font-semibold">
-          {vi.profile.nganh}
+          {t.profile.nganh}
         </label>
         <input
           id={`${id}-nganh`}
@@ -93,7 +111,7 @@ function ProfileForm({ hoSo, onSave }: { hoSo: HoSo; onSave: (h: HoSo) => void }
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor={`${id}-dt`} className="text-sm font-semibold">
-          {vi.profile.doanhThu}
+          {t.profile.doanhThu}
         </label>
         <input
           id={`${id}-dt`}
@@ -112,7 +130,7 @@ function ProfileForm({ hoSo, onSave }: { hoSo: HoSo; onSave: (h: HoSo) => void }
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor={`${id}-dia`} className="text-sm font-semibold">
-          {vi.profile.diaBan}
+          {t.profile.diaBan}
         </label>
         <input
           id={`${id}-dia`}
@@ -125,7 +143,7 @@ function ProfileForm({ hoSo, onSave }: { hoSo: HoSo; onSave: (h: HoSo) => void }
         type="submit"
         className="mt-2 inline-flex min-h-11 items-center justify-center rounded-md bg-brand px-5 font-medium text-white transition-transform duration-[120ms] active:scale-[0.97]"
       >
-        {vi.profile.save}
+        {t.profile.save}
       </button>
     </form>
   );

@@ -2,9 +2,9 @@
 
 import { cn } from "cn";
 import { FileText } from "lucide-react";
+import { useT } from "@/components/providers";
 import type { ChiTietDieuKhoan, TrangThai, TrichDan } from "@/lib/api/contract";
 import { articleLabel, docLabel } from "@/lib/format";
-import { vi } from "@/lib/i18n/vi";
 import { STATUS_STYLE } from "../status";
 
 export interface ResolvedCitation {
@@ -33,7 +33,9 @@ export function CitationChip({
   size?: "sm" | "md";
   film?: string;
 }) {
+  const t = useT();
   const s = citation.status ? STATUS_STYLE[citation.status] : null;
+  const statusWord = citation.status ? t.status[citation.status] : "";
   const Icon = s?.icon ?? FileText;
   const label = citationLabel(citation);
   return (
@@ -41,7 +43,7 @@ export function CitationChip({
       type="button"
       onClick={onOpen}
       data-film={film}
-      aria-label={`${label}${s ? ` — ${s.label}` : ""}. ${vi.openArticle}`}
+      aria-label={`${label}${s ? ` — ${statusWord}` : ""}. ${t.openArticle}`}
       aria-haspopup="dialog"
       className={cn(
         "relative inline-flex max-w-full items-center gap-1.5 rounded-full border text-left font-mono font-medium transition-[background-color,transform] duration-[120ms] ease-[var(--ease-ui)] active:scale-[0.97]",
@@ -58,7 +60,7 @@ export function CitationChip({
       {/* Status is never colour-only: the word is always visible (DESIGN.md §2.2). */}
       {s && (
         <span aria-hidden className="shrink-0 border-l border-current/25 pl-1.5 font-sans">
-          {s.label}
+          {statusWord}
         </span>
       )}
     </button>

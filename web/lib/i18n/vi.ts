@@ -1,8 +1,9 @@
 import type { LoaiQuanHe, MaKiemChung, TrangThai } from "../api/contract";
 
 /**
- * Every UI string (DESIGN.md §12). Vietnamese first; an `en.ts` with the same shape can follow.
- * Never use "tư vấn", "đảm bảo" or "chính xác 100%" here.
+ * Every UI string, Vietnamese (DESIGN.md §12). `en.ts` has the same shape (checked by `Dict`).
+ * Never use "tư vấn", "đảm bảo" or "chính xác 100%" here — the only exception is the mandated
+ * disclaimer, which says LexVi is *not* "tư vấn".
  */
 export const vi = {
   brand: "LexVi",
@@ -16,10 +17,21 @@ export const vi = {
     label: "Điều hướng chính",
   },
 
+  lang: {
+    label: "Ngôn ngữ",
+    en: "EN",
+    vi: "VI",
+    enName: "English",
+    viName: "Tiếng Việt",
+  },
+
   disclaimer: {
-    vi: "Thông tin tham khảo có trích dẫn, không phải tư vấn. Cần kế toán hoặc cơ quan thuế xác nhận.",
+    full: "Thông tin tham khảo có trích dẫn, không phải tư vấn. Cần kế toán hoặc cơ quan thuế xác nhận.",
     short: "Thông tin tham khảo có trích dẫn — cần kế toán hoặc cơ quan thuế xác nhận.",
   },
+
+  /** Shown only in the English UI; empty in Vietnamese. */
+  sourceNote: "",
 
   mockBadge: "Dữ liệu minh hoạ · chưa kết nối máy chủ",
   mockNote: "Các con số, điều khoản và hạn trong bản mẫu này chưa được đối chiếu với văn bản gốc.",
@@ -72,6 +84,7 @@ export const vi = {
     doanhThu: "Doanh thu năm (đồng)",
     diaBan: "Địa bàn",
     save: "Lưu hồ sơ",
+    perYear: "/năm",
     loai: { ho_kinh_doanh: "Hộ kinh doanh", doanh_nghiep_nho: "Doanh nghiệp nhỏ" },
   },
 
@@ -151,8 +164,41 @@ export const vi = {
     overdue: (n: number) => `quá hạn ${n} ngày`,
     today: "hạn hôm nay",
     left: (n: number) => `còn ${n} ngày`,
+    noDeadline: "Văn bản không nêu hạn",
     basis: "Căn cứ",
     markDone: "Đánh dấu đã xong",
+  },
+
+  impact: {
+    title: "Văn bản mới ảnh hưởng tới bạn",
+    subtitle:
+      "Thả một văn bản pháp luật mới (PDF). LexVi tìm điều khoản bị thay đổi, đối chiếu với hồ sơ của bạn và lập việc cần làm.",
+    dropTitle: "Kéo thả tệp PDF vào đây",
+    dropHint: "PDF có lớp chữ, tối đa 20 MB",
+    choose: "Chọn tệp PDF",
+    sample: "Dùng văn bản mẫu",
+    sampleName: "van-ban-mau.pdf",
+    scanning: "Đang đọc văn bản…",
+    scanningHint: "Đối chiếu từng thay đổi với kho điều khoản và hồ sơ của bạn.",
+    errNotPdf: "Tệp này không phải PDF. Hãy chọn một tệp PDF có lớp chữ.",
+    errTooBig: "Tệp lớn hơn 20 MB.",
+    errFailed: "Không đọc được văn bản. Hãy thử lại.",
+    errNeedFile: "Máy chủ cần một tệp PDF thật; văn bản mẫu chỉ dùng khi chạy dữ liệu minh hoạ.",
+    newDoc: "Văn bản mới",
+    appliesFrom: (d: string) => `Áp dụng từ ${d}`,
+    affectedCount: (n: number, total: number) =>
+      `${n}/${total} thay đổi ảnh hưởng tới quán của bạn`,
+    changes: "Điều khoản bị thay đổi",
+    before: "Trước đây",
+    after: "Văn bản mới",
+    affects: "Ảnh hưởng tới quán của bạn",
+    notAffects: "Không ảnh hưởng tới quán của bạn",
+    tasks: "Việc cần làm",
+    noTasks: "Không có việc cần làm cho hồ sơ này.",
+    dropped: (n: number) => `${n} thay đổi bị loại vì không kiểm chứng được`,
+    droppedHint:
+      "LexVi chỉ hiển thị thay đổi có trích đoạn nguyên văn trong văn bản mới và trỏ tới điều khoản có trong kho.",
+    another: "Đọc văn bản khác",
   },
 
   placeholder: {
@@ -161,5 +207,3 @@ export const vi = {
     back: "Về Hỏi đáp",
   },
 } as const;
-
-export type Dict = typeof vi;

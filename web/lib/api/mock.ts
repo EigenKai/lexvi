@@ -10,6 +10,8 @@ import type {
   AskRequest,
   AskResponseMoRong,
   ChiTietDieuKhoan,
+  HoSo,
+  IngestResponse,
   LanKiemChung,
   NutChuoi,
   VanBan,
@@ -346,4 +348,77 @@ export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoR
 
 export function mockDetail(id: string): ChiTietDieuKhoan | null {
   return DETAILS[id] ?? null;
+}
+
+// ── /ingest ──────────────────────────────────────────────────────────────────────────────────
+// MOCK [ILLUSTRATIVE] — the "new document" is Decree 141/2026 amending Decree 68/2026. Article
+// numbers and texts are placeholders (prefixed [MINH HOẠ]); role A picks and verifies the real one.
+export function mockIngest(hoSo: HoSo): IngestResponse {
+  const underThreshold = hoSo.doanh_thu_nam <= 1_000_000_000;
+  const rowThreshold = {
+    trich_doan:
+      "Hộ kinh doanh có doanh thu năm từ 01 tỷ đồng trở xuống không phải nộp thuế giá trị gia tăng và thuế thu nhập cá nhân.",
+    loai: "sua_doi" as const,
+    dieu_bi_tac_dong: "68-2026-ND-CP-D4-K1",
+    anh_huong_toi_ho_so: underThreshold,
+    giai_thich: underThreshold
+      ? `Mức doanh thu không phải nộp thuế GTGT và TNCN tăng từ 500 triệu lên 1 tỷ đồng/năm. Doanh thu ${formatVndWords(hoSo.doanh_thu_nam)} của quán không vượt mức mới.`
+      : `Mức doanh thu không phải nộp thuế GTGT và TNCN tăng từ 500 triệu lên 1 tỷ đồng/năm. Doanh thu ${formatVndWords(hoSo.doanh_thu_nam)} của quán vẫn cao hơn mức mới.`,
+    viec_can_lam: underThreshold
+      ? "Xác nhận với kế toán việc không phải nộp thuế GTGT, TNCN cho năm 2026"
+      : "",
+    han: "",
+    dieu_cu: {
+      id: "68-2026-ND-CP-D4-K1",
+      so_hieu: VB.nd68.so_hieu,
+      noi_dung: `${PLACEHOLDER} Hộ kinh doanh có doanh thu năm từ 500 triệu đồng trở xuống không phải nộp thuế giá trị gia tăng và thuế thu nhập cá nhân.`,
+    },
+  };
+  const overThreshold = hoSo.doanh_thu_nam > 1_000_000_000;
+  const rowInvoice = {
+    trich_doan: "Hộ kinh doanh có doanh thu năm trên 01 tỷ đồng phải sử dụng hoá đơn điện tử.",
+    loai: "sua_doi" as const,
+    dieu_bi_tac_dong: "68-2026-ND-CP-D8-K5",
+    anh_huong_toi_ho_so: overThreshold,
+    giai_thich: overThreshold
+      ? "Quán có doanh thu trên 1 tỷ đồng/năm nên phải dùng hoá đơn điện tử."
+      : "Mức bắt buộc dùng hoá đơn điện tử là doanh thu trên 1 tỷ đồng/năm; quán chưa thuộc diện bắt buộc.",
+    viec_can_lam: overThreshold ? "Đăng ký sử dụng hoá đơn điện tử với cơ quan thuế" : "",
+    han: overThreshold ? "2026-12-31" : "",
+    dieu_cu: {
+      id: "68-2026-ND-CP-D8-K5",
+      so_hieu: VB.nd68.so_hieu,
+      noi_dung: `${PLACEHOLDER} Hộ kinh doanh có doanh thu năm từ 500 triệu đồng trở lên phải sử dụng hoá đơn điện tử có mã của cơ quan thuế.`,
+    },
+  };
+  const rows = [rowThreshold, rowInvoice];
+  return {
+    van_ban_moi: {
+      so_hieu: VB.nd141.so_hieu,
+      tieu_de: VB.nd141.tieu_de,
+      hieu_luc_tu: VB.nd141.hieu_luc_tu,
+    },
+    dieu_bi_anh_huong: rows,
+    viec_can_lam: rows
+      .filter((r) => r.anh_huong_toi_ho_so && r.viec_can_lam)
+      .map((r) => ({
+        viec: r.viec_can_lam,
+        han: r.han,
+        can_cu: r.dieu_bi_tac_dong,
+        trich_doan: r.trich_doan,
+      })),
+    bi_loai: [
+      {
+        trich_doan: "Hộ kinh doanh được miễn toàn bộ các loại thuế trong năm 2026.",
+        loai: "sua_doi",
+        dieu_bi_tac_dong: "68-2026-ND-CP-D3",
+        anh_huong_toi_ho_so: true,
+        giai_thich: "",
+        viec_can_lam: "",
+        han: "",
+        ly_do: "trích đoạn không có nguyên văn trong văn bản mới",
+      },
+    ],
+    can_xac_nhan: true,
+  };
 }

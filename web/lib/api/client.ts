@@ -3,10 +3,14 @@ import type {
   AskResponseMoRong,
   ChecklistItem,
   ChiTietDieuKhoan,
+  DieuBiAnhHuong,
+  HoSo,
+  IngestResponse,
   LanKiemChung,
+  ThayDoi,
   TrichDan,
 } from "./contract";
-import { type MockScenario, mockAsk, mockDetail, pickScenario } from "./mock";
+import { type MockScenario, mockAsk, mockDetail, mockIngest, pickScenario } from "./mock";
 
 /**
  * When NEXT_PUBLIC_LEXVI_API_URL is set, calls role B's backend; otherwise returns the typed
@@ -149,4 +153,104 @@ export async function getCitationDetail(
     }
   }
   return mockDetail(id);
+}
+
+/* ── POST /ingest ───────────────────────────────────────────────────────────────────────────── */
+
+const LOAI_THAY_DOI = new Set(["sua_doi", "thay_the", "bai_bo", "huong_dan"]);
+export const MAX_PDF_BYTES = 20 * 1024 * 1024;
+
+function parseChange(c: Record<string, unknown>): ThayDoi | null {
+  if (typeof c.trich_doan !== "string" || typeof c.dieu_bi_tac_dong !== "string") return null;
+  return {
+    trich_doan: c.trich_doan,
+    loai: (LOAI_THAY_DOI.has(str(c.loai)) ? c.loai : "sua_doi") as ThayDoi["loai"],
+    dieu_bi_tac_dong: c.dieu_bi_tac_dong,
+    anh_huong_toi_ho_so: c.anh_huong_toi_ho_so === true,
+    giai_thich: str(c.giai_thich),
+    viec_can_lam: str(c.viec_can_lam),
+    han: str(c.han),
+  };
+}
+
+/** Untrusted (model output): validate, drop malformed rows, default arrays. */
+export function parseIngestResponse(raw: unknown): IngestResponse {
+  if (!isObj(raw) || !isObj(raw.van_ban_moi)) throw new ApiError("/ingest: missing van_ban_moi");
+  const vb = raw.van_ban_moi;
+  const affected: DieuBiAnhHuong[] = (
+    Array.isArray(raw.dieu_bi_anh_huong) ? raw.dieu_bi_anh_huong : []
+  )
+    .filter(isObj)
+    .flatMap((c) => {
+      const base = parseChange(c);
+      const old = isObj(c.dieu_cu) ? c.dieu_cu : null;
+      if (!base || !old || typeof old.noi_dung !== "string") return [];
+      return [
+        {
+          ...base,
+          dieu_cu: { id: str(old.id), so_hieu: str(old.so_hieu), noi_dung: old.noi_dung },
+        },
+      ];
+    });
+  const tasks = (Array.isArray(raw.viec_can_lam) ? raw.viec_can_lam : [])
+    .filter((v): v is Record<string, unknown> => isObj(v) && typeof v.viec === "string")
+    .map((v) => ({
+      viec: str(v.viec),
+      han: str(v.han),
+      can_cu: str(v.can_cu),
+      trich_doan: str(v.trich_doan),
+    }));
+  const dropped = (Array.isArray(raw.bi_loai) ? raw.bi_loai : []).filter(isObj).flatMap((c) => {
+    const base = parseChange(c);
+    return base ? [{ ...base, ly_do: str(c.ly_do) }] : [];
+  });
+  return {
+    van_ban_moi: {
+      so_hieu: str(vb.so_hieu),
+      tieu_de: str(vb.tieu_de),
+      hieu_luc_tu: str(vb.hieu_luc_tu),
+    },
+    dieu_bi_anh_huong: affected,
+    viec_can_lam: tasks,
+    bi_loai: dropped,
+    can_xac_nhan: true,
+  };
+}
+
+/**
+ * Send a new legal PDF for analysis. In mock mode `file` may be null (the sample document);
+ * against the real backend a PDF is required.
+ */
+export async function ingest(
+  file: File | null,
+  hoSo: HoSo,
+  opts: { latencyMs: number; signal?: AbortSignal },
+): Promise<IngestResponse> {
+  if (API_URL) {
+    if (!file) throw new ApiError("needs-file");
+    const body = new FormData();
+    body.append("pdf", file);
+    body.append("ho_so", JSON.stringify(hoSo));
+    const res = await fetch(`${API_URL}/ingest`, {
+      method: "POST",
+      body,
+      signal: withTimeout(opts.signal),
+    });
+    if (!res.ok) {
+      const requestId = res.headers.get("x-request-id");
+      console.warn(`/ingest failed: ${res.status}${requestId ? ` (request ${requestId})` : ""}`);
+      // FastAPI puts a short, user-facing Vietnamese reason in `detail` for 400/422.
+      let detail = "";
+      try {
+        const j: unknown = await res.json();
+        if (isObj(j) && typeof j.detail === "string") detail = j.detail.slice(0, 200);
+      } catch {
+        // no JSON body
+      }
+      throw new ApiError(detail || `/ingest ${res.status}`, res.status);
+    }
+    return parseIngestResponse(await res.json());
+  }
+  await wait(opts.latencyMs, opts.signal);
+  return mockIngest(hoSo);
 }

@@ -5,7 +5,7 @@ import { Info, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Dialog } from "radix-ui";
 import { type ReactNode, useRef } from "react";
-import { vi } from "@/lib/i18n/vi";
+import { useT } from "@/components/providers";
 import { duration, ease } from "@/lib/motion";
 import { useIsDesktop } from "@/lib/use-media-query";
 
@@ -29,6 +29,7 @@ export function Drawer({
   children: ReactNode;
   film?: string;
 }) {
+  const t = useT();
   const desktop = useIsDesktop();
   const reduced = useReducedMotion();
   // Opened programmatically (no Dialog.Trigger), so remember what had focus and return it on close.
@@ -102,7 +103,7 @@ export function Drawer({
                   </div>
                   <Dialog.Close
                     className="-mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-md text-ink-2 transition-colors hover:bg-surface-sunk"
-                    aria-label={vi.drawer.close}
+                    aria-label={t.drawer.close}
                   >
                     <X aria-hidden className="size-5" />
                   </Dialog.Close>
@@ -113,7 +114,7 @@ export function Drawer({
                 {/* The drawer covers the page's DisclaimerBar, so it repeats the short form. */}
                 <p className="flex items-start gap-2 border-t border-line bg-surface-sunk px-6 py-2 text-xs text-ink-2 max-sm:px-4">
                   <Info aria-hidden className="mt-0.5 size-3.5 shrink-0 text-ink-3" />
-                  {vi.disclaimer.short}
+                  {t.disclaimer.short}
                 </p>
               </motion.div>
             </Dialog.Content>

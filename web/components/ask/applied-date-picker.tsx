@@ -3,9 +3,9 @@
 import { cn } from "cn";
 import { CalendarDays } from "lucide-react";
 import { useId, useRef, useState } from "react";
+import { useT } from "@/components/providers";
 import type { IsoDate } from "@/lib/api/contract";
 import { formatDate } from "@/lib/format";
-import { vi } from "@/lib/i18n/vi";
 
 /** Dates worth trying in the demo: before the 2026 change, and inside the retroactive window. */
 const PRESETS: IsoDate[] = ["2025-12-01", "2026-03-15"];
@@ -24,6 +24,7 @@ export function AppliedDatePicker({
   today: IsoDate;
   onChange: (iso: IsoDate) => void;
 }) {
+  const t = useT();
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
   // Browsers without showPicker(): show the native field itself instead of the button.
@@ -43,21 +44,21 @@ export function AppliedDatePicker({
   return (
     <div data-film="applied-date" className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <span id={`${id}-label`} className="text-sm font-semibold text-ink">
-        {vi.appliedDate.label}
+        {t.appliedDate.label}
       </span>
       <div className="relative">
         <button
           hidden={native}
           type="button"
           onClick={open}
-          aria-label={`${vi.appliedDate.change}: ${formatDate(value)}`}
+          aria-label={`${t.appliedDate.change}: ${formatDate(value)}`}
           className="inline-flex min-h-11 items-center gap-2 rounded-md border border-line-strong bg-surface px-3 font-mono text-[0.9375rem] font-medium text-ink tabular-nums transition-colors hover:bg-surface-sunk"
         >
           <CalendarDays aria-hidden className="size-4 text-brand" />
           {formatDate(value)}
           {value === today && (
             <span className="font-sans text-xs font-medium text-ink-3">
-              ({vi.appliedDate.today})
+              ({t.appliedDate.today})
             </span>
           )}
         </button>
@@ -80,7 +81,7 @@ export function AppliedDatePicker({
         />
       </div>
       <span className="flex flex-wrap items-center gap-2 text-sm text-ink-3">
-        {vi.appliedDate.tryOther}
+        {t.appliedDate.tryOther}
         {[today, ...PRESETS.filter((p) => p !== today)].map((d) => (
           <button
             key={d}
@@ -92,7 +93,7 @@ export function AppliedDatePicker({
               value === d ? "text-brand underline" : "text-ink-2 hover:text-ink hover:underline",
             )}
           >
-            {d === today ? vi.appliedDate.today : formatDate(d)}
+            {d === today ? t.appliedDate.today : formatDate(d)}
           </button>
         ))}
       </span>
