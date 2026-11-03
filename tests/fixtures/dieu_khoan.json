@@ -1,0 +1,5 @@
+[
+ {"id": "TEST-CU-D4-K1", "so_hieu": "TEST-CU", "dieu": "4", "khoan": "1", "trang": 2, "noi_dung": "Cá nhân kinh doanh có doanh thu từ 100 triệu đồng/năm trở xuống thì không phải nộp thuế giá trị gia tăng."},
+ {"id": "TEST-CU-D9", "so_hieu": "TEST-CU", "dieu": "9", "khoan": "", "trang": 5, "noi_dung": "Hộ kinh doanh nộp tờ khai thuế khoán chậm nhất là ngày 15 tháng 12 năm trước."},
+ {"id": "TEST-MOI-D2-K1", "so_hieu": "TEST-MOI", "dieu": "2", "khoan": "1", "trang": 1, "noi_dung": "Hộ kinh doanh có doanh thu từ 500 triệu đồng/năm trở xuống thì không phải nộp thuế giá trị gia tăng."}
+]

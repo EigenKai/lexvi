@@ -1,0 +1,7 @@
+.env
+pyenv/
+__pycache__/
+*.pyc
+runs/
+data/lexvi.db
+.pytest_cache/

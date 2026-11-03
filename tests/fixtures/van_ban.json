@@ -1,0 +1,4 @@
+[
+ {"so_hieu": "TEST-CU", "loai": "nghi_dinh", "tieu_de": "Văn bản thử nghiệm cũ (dữ liệu giả cho test)", "ngay_ban_hanh": "2020-01-01", "hieu_luc_tu": "2020-03-01", "het_hieu_luc": null, "nguon_url": "https://example.test/cu"},
+ {"so_hieu": "TEST-MOI", "loai": "nghi_dinh", "tieu_de": "Văn bản thử nghiệm mới (dữ liệu giả cho test)", "ngay_ban_hanh": "2025-11-01", "hieu_luc_tu": "2026-01-01", "het_hieu_luc": null, "nguon_url": "https://example.test/moi"}
+]
