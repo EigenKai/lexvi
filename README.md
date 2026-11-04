@@ -8,6 +8,18 @@ confirm.
 Built for the Meta Global AI Developer Hackathon (27 Oct – 4 Nov 2026). All code in this repository was written
 during the hackathon; the first commit is dated 3 Nov 2026.
 
+## Try it
+
+- **https://lexvi.vercel.app** has the story page, the demo film, and the app answering instantly with **prepared
+  example responses**. The article texts in those responses are taken verbatim from the corpus; the answers were
+  written for the demo, and the app labels them as such.
+- **https://lexvi-live.vercel.app/hoi-dap** is the same app **live**. Questions go to the backend below and Muse
+  Spark answers them in Vietnamese, in one to two minutes. Voice and photo input call Muse Voice Transcribe and
+  Muse Spark. A per-visitor limit and a daily budget apply.
+- **Backend:** `https://lexvi-api.onrender.com`, on a Render Free instance (see "Deploy on Render").
+  - On 4 Nov 2026 one live question took 102 s and 14 Spark calls, an estimated $0.09 at list prices.
+  - One new-document check took 63 s, about $0.04.
+
 ## Why
 
 Vietnam's tax rules for household businesses changed in 2026, and web pages quote different revenue thresholds
@@ -60,8 +72,8 @@ Evaluation against plain RAG: `pyenv/bin/python -m scripts.run_eval`.
 ## Deploy on Render (the live demo)
 
 The live demo runs this backend as a Render web service at `https://lexvi-api.onrender.com` (`GET /health`).
-It was created from the public repository URL, branch `fix/qa-backend` (merged into `main` on 4 Nov 2026), so
-deploys are manual.
+It deploys `main` from the public repository URL, so deploys are manual: Manual Deploy → Deploy latest commit. The
+web app reaches it from `https://lexvi-live.vercel.app`, the only origin in `LEXVI_CORS_ORIGINS`.
 
 | Setting | Value |
 |---|---|

@@ -47,7 +47,7 @@ export const vi = {
     checking: "Đang kết nối máy chủ trực tiếp…",
     waking: "Đang đánh thức máy chủ trực tiếp (gói miễn phí), mất khoảng một phút…",
     ready:
-      "Câu trả lời đến trực tiếp từ Muse Spark, mất khoảng một phút. Mỗi người dùng có giới hạn lượt hỏi.",
+      "Câu trả lời đến trực tiếp từ Muse Spark, mất khoảng một đến hai phút. Mỗi người dùng có giới hạn lượt hỏi.",
     down: "Máy chủ trực tiếp chưa phản hồi. Hãy thử lại sau một phút, hoặc dùng phản hồi mẫu.",
     toPrepared: "Phản hồi mẫu (tức thì) →",
     tryLive: "Dùng thử trực tiếp →",
@@ -430,7 +430,7 @@ export const vi = {
       "Bộ câu hỏi do nhóm soạn · N = 20 (11 câu bẫy về ngày) · cùng mô hình muse-spark-1.3 · chạy ngày 04/11/2026",
     savedSub: "mỗi năm, không phải nộp",
     savedLine:
-      "Minh: “Khoảng hai mươi bốn triệu một năm. Suýt nữa tôi nộp theo một quy định đã hết hiệu lực.”",
+      "Minh: “Khoảng 24 triệu một năm. Suýt nữa tôi nộp theo một quy định đã hết hiệu lực.”",
     calling: "Đang gọi · kế toán của tôi…",
     callLine: "Minh: “Alô, Minh đây. Chị xác nhận giúp tôi được không?”",
     savedNote:

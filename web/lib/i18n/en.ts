@@ -47,7 +47,7 @@ export const en: Dict = {
     checking: "Connecting to the live server…",
     waking: "Waking the live server (free hosting). This takes about a minute…",
     ready:
-      "Answers come live from Muse Spark, in Vietnamese, and take about a minute. Limited per visitor.",
+      "Answers come live from Muse Spark, in Vietnamese, and take one to two minutes. Limited per visitor.",
     down: "The live server isn't responding. Try again in a minute, or use the prepared examples.",
     toPrepared: "Prepared examples (instant) →",
     tryLive: "Try it live →",
@@ -432,8 +432,7 @@ export const en: Dict = {
     proofNote:
       "Team-written test set · N = 20 (11 date traps) · same model: muse-spark-1.3 · run 04/11/2026 · questions shown in English translation",
     savedSub: "a year, not owed",
-    savedLine:
-      "Minh: “About twenty-four million a year. I almost paid for a rule that no longer applied.”",
+    savedLine: "Minh: “About 24 million a year. I almost paid for a rule that no longer applied.”",
     calling: "Calling · my accountant…",
     callLine: "Minh: “Hello, it's Minh. Can you confirm this for me?”",
     savedNote:
