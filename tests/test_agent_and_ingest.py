@@ -41,7 +41,7 @@ def test_stale_citation_is_refused_then_corrected_answer_passes(store):
     out = agent.ask(client, store, "Ngưỡng miễn thuế?", "2026-03-01", PROFILE)
     assert out["trang_thai"] == "answered" and not out["can_xac_nhan"]
     assert out["trich_dan"][0]["id"] == NEW and out["trich_dan"][0]["trang"] == 1
-    steps = json.loads((agent.RUNS_DIR / f"{out['run_id']}.json").read_text())["steps"]
+    steps = json.loads((agent.RUNS_DIR / f"{out['run_id']}.json").read_text(encoding="utf-8"))["steps"]
     refusal = next(s for s in steps if s["tool"] == "nop_cau_tra_loi")
     assert NEW in " ".join(refusal["result"]["van_de"])
 
@@ -69,7 +69,7 @@ def test_judge_omitting_a_citation_or_rejecting_the_answer_is_a_refusal(store):
                          submit(NEW, NEW_QUOTE), judge_ok()])
     out = agent.ask(client, store, "Ngưỡng miễn thuế?", "2026-03-01", PROFILE)
     assert out["trang_thai"] == "answered"
-    steps = json.loads((agent.RUNS_DIR / f"{out['run_id']}.json").read_text())["steps"]
+    steps = json.loads((agent.RUNS_DIR / f"{out['run_id']}.json").read_text(encoding="utf-8"))["steps"]
     problems = [" ".join(s["result"].get("van_de", [])) for s in steps]
     assert "chưa được kiểm" in problems[0] and "hạn không có" in problems[1]
 

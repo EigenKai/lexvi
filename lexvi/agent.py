@@ -38,7 +38,9 @@ def _render(store: LawStore, final: dict, on: str) -> dict:
     citations = []
     for c in final.get("trich_dan") or []:
         p = store.provision(str(c.get("id", ""))) or {}
-        citations.append({**c, "trang": p.get("trang"), "so_hieu": p.get("so_hieu"),
+        locations = store.quote_locations(str(c.get("id", "")), c.get("cau_trich", ""))
+        citations.append({**c, "trang": locations[0]["trang"] if locations else p.get("trang"),
+                          "vi_tri_nguon": locations, "so_hieu": p.get("so_hieu"),
                           "ten_van_ban": p.get("ten_van_ban"), "nguon_url": p.get("nguon_url"),
                           "tinh_trang": store.status(c.get("id", ""), on).reason,
                           "chuoi_sua_doi": store.relations_to(c.get("id", ""))})
