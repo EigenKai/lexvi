@@ -238,6 +238,19 @@ export const MOCK_SUGGESTIONS = [
 /** What the mic mock "hears" (the real flow sends the recording to Muse Voice Transcribe). */
 export const MOCK_TRANSCRIPT = MOCK_SUGGESTIONS[0];
 
+/**
+ * MOCK [ILLUSTRATIVE] — what the photo reader returns in film / mock mode. The real flow sends
+ * the photo to Muse Spark (app/api/read-image). Not a real document.
+ */
+export const MOCK_PHOTO_READING = {
+  la_giay_to_thue: true,
+  loai_giay_to: "Thông báo về thuế (ảnh minh hoạ)",
+  tom_tat:
+    "[MINH HOẠ] Giấy đề nghị hộ kinh doanh tự kê khai doanh thu năm 2026 và nêu mức doanh thu không phải nộp thuế.",
+  ngay_tren_giay: "",
+  cau_hoi_goi_y: MOCK_SUGGESTIONS[0],
+} as const;
+
 // ── /ask ─────────────────────────────────────────────────────────────────────────────────────
 export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoRong {
   const d = req.ngay_ap_dung;

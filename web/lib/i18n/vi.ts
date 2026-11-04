@@ -67,6 +67,13 @@ export const vi = {
     listening: "Đang nghe…",
     transcribing: "Đang chuyển giọng nói thành chữ…",
     error: "Không nhận được giọng nói — hãy gõ câu hỏi",
+    stop: "Dừng ghi âm",
+    seconds: (s: number, max: number) => `${s}/${max} giây`,
+    denied: "Trình duyệt chưa cho phép dùng micro — hãy cho phép hoặc gõ câu hỏi.",
+    unavailable: "Không tìm thấy micro — hãy gõ câu hỏi.",
+    noSpeech: "Không nghe rõ giọng nói — hãy nói lại hoặc gõ câu hỏi.",
+    notConfigured: "Nhận giọng nói chưa được cấu hình trên máy chủ — hãy gõ câu hỏi.",
+    check: "Hãy kiểm tra lại câu chữ trước khi gửi.",
   },
 
   photo: {
@@ -74,6 +81,17 @@ export const vi = {
     attached: "Ảnh đính kèm",
     notConnected: "Bản mẫu: chưa đọc nội dung ảnh",
     remove: "Bỏ ảnh",
+    reading: "Đang đọc ảnh…",
+    readBy: "Muse Spark đọc từ ảnh — hãy đối chiếu với giấy gốc.",
+    notTax: "Ảnh này có vẻ không phải giấy tờ thuế.",
+    dateFound: (d: string) => `Ngày trên giấy: ${d}`,
+    useQuestion: "Dùng câu hỏi này",
+    dateApplied: (d: string) => `Đã đặt ngày áp dụng theo ảnh: ${d}`,
+    tooLarge: "Ảnh quá lớn.",
+    unsupported: "Chỉ nhận ảnh JPG, PNG hoặc WebP.",
+    notConfigured: "Đọc ảnh chưa được cấu hình trên máy chủ.",
+    failed: "Không đọc được ảnh. Hãy thử lại hoặc gõ câu hỏi.",
+    rateLimited: "Máy chủ đang bận — hãy thử lại sau ít phút.",
   },
 
   profile: {

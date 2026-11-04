@@ -176,6 +176,10 @@ export function AskScreen() {
             busy={phase === "searching"}
             textareaRef={textareaRef}
             profile={<ProfileChip hoSo={hoSo} onEdit={() => setProfileOpen(true)} />}
+            canned={film.enabled}
+            // A date read from a photo sets the applied date; the drafted question waits in the
+            // box for the owner to send, so nothing is re-asked here.
+            onApplyDate={setApplied}
           />
         </div>
         <div className="-mt-3 max-sm:mt-0">

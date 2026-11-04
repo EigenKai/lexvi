@@ -1,14 +1,36 @@
 "use client";
 
 import { cn } from "cn";
-import { ArrowUp, ImagePlus, Loader2, Mic, Plus, X } from "lucide-react";
+import {
+  ArrowUp,
+  CalendarCheck,
+  FileSearch,
+  ImagePlus,
+  Loader2,
+  Mic,
+  Plus,
+  Square,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useT } from "@/components/providers";
-import { MOCK_TRANSCRIPT } from "@/lib/api/mock";
+import {
+  InputError,
+  type InputErrorCode,
+  type PhotoReading,
+  readImage,
+  transcribe,
+  usingMock,
+} from "@/lib/api/client";
+import { MOCK_PHOTO_READING, MOCK_TRANSCRIPT } from "@/lib/api/mock";
+import { shrinkImage, toWav } from "@/lib/audio/wav";
+import { formatDate } from "@/lib/format";
 import { duration, ease } from "@/lib/motion";
 
 type MicState = "idle" | "listening" | "transcribing" | "error";
+const MAX_SECONDS = 60;
 
 function IconButton({
   label,
@@ -17,6 +39,7 @@ function IconButton({
   className,
   film,
   pressed,
+  disabled,
 }: {
   label: string;
   onClick: () => void;
@@ -24,6 +47,7 @@ function IconButton({
   className?: string;
   film?: string;
   pressed?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
@@ -31,9 +55,10 @@ function IconButton({
       aria-label={label}
       aria-pressed={pressed}
       onClick={onClick}
+      disabled={disabled}
       data-film={film}
       className={cn(
-        "relative inline-flex size-11 shrink-0 items-center justify-center rounded-md text-ink-2 transition-[background-color,transform] duration-[120ms] hover:bg-surface-sunk active:scale-[0.97]",
+        "relative inline-flex size-11 shrink-0 items-center justify-center rounded-md text-ink-2 transition-[background-color,transform] duration-[120ms] hover:bg-surface-sunk active:scale-[0.97] disabled:opacity-40",
         className,
       )}
     >
@@ -44,8 +69,11 @@ function IconButton({
 
 /**
  * DESIGN.md §4.1 AskBar + §4.15 mic states.
- * MOCK: the mic and photo buttons simulate their states only. Real capture (Muse Voice Transcribe,
- * image reading) comes later and is first in the cut order (constraints.md).
+ * Voice: records in the browser, converts to 24 kHz mono WAV, and sends it to /api/transcribe
+ * (Muse Voice Transcribe). The transcript fills the box; the owner checks it and sends.
+ * Photo: downscales the picture and sends it to /api/read-image (Muse Spark), which returns a
+ * summary and a drafted question — never an answer; answers come only from the verified /ask.
+ * Film mode (`canned`) keeps both deterministic with illustrative canned results.
  */
 export function AskBar({
   value,
@@ -54,6 +82,8 @@ export function AskBar({
   busy,
   profile,
   textareaRef,
+  canned = false,
+  onApplyDate,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -61,31 +91,206 @@ export function AskBar({
   busy: boolean;
   profile: ReactNode;
   textareaRef?: React.RefObject<HTMLTextAreaElement | null>;
+  /** Film mode: canned transcript / photo reading instead of live calls. */
+  canned?: boolean;
+  /** Set the applied date from a date read on the photo. */
+  onApplyDate?: (iso: string) => void;
 }) {
   const t = useT();
   const [mic, setMic] = useState<MicState>("idle");
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [micError, setMicError] = useState<InputErrorCode | null>(null);
+  const [micNote, setMicNote] = useState(false);
+  const [seconds, setSeconds] = useState(0);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  const [photo, setPhoto] = useState<{ name: string; url: string } | null>(null);
+  const [reading, setReading] = useState<PhotoReading | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState<InputErrorCode | null>(null);
+  const [dateApplied, setDateApplied] = useState<string | null>(null);
+
   const fileRef = useRef<HTMLInputElement>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const recorder = useRef<MediaRecorder | null>(null);
+  const abort = useRef<AbortController | null>(null);
 
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  useEffect(
+    () => () => {
+      for (const id of timers.current) clearTimeout(id);
+      abort.current?.abort();
+      recorder.current?.stream.getTracks().forEach((tr) => {
+        tr.stop();
+      });
+    },
+    [],
+  );
+  useEffect(() => () => (photo ? URL.revokeObjectURL(photo.url) : undefined), [photo]);
 
-  const startMic = () => {
-    if (mic !== "idle" && mic !== "error") {
-      timers.current.forEach(clearTimeout);
-      setMic("idle");
-      return;
-    }
+  /* ── Voice ──────────────────────────────────────────────────────────────────────────── */
+
+  const fail = (code: InputErrorCode) => {
+    setMicError(code);
+    setMic("error");
+  };
+
+  const cannedVoice = () => {
     setMic("listening");
     timers.current = [
       setTimeout(() => setMic("transcribing"), 1600),
       setTimeout(() => {
-        // MOCK transcript
-        onChange(MOCK_TRANSCRIPT);
+        onChange(MOCK_TRANSCRIPT); // MOCK transcript
         setMic("idle");
       }, 2400),
     ];
+  };
+
+  const stopRecording = () => {
+    for (const id of timers.current) clearTimeout(id);
+    if (recorder.current?.state === "recording") recorder.current.stop();
+  };
+
+  const startMic = async () => {
+    if (mic === "listening") return stopRecording();
+    if (mic === "transcribing") return;
+    setMicError(null);
+    setMicNote(false);
+    if (canned) return cannedVoice();
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      return fail("mic_unavailable");
+    }
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      const name = (err as DOMException).name;
+      return fail(
+        name === "NotAllowedError" || name === "SecurityError" ? "mic_denied" : "mic_unavailable",
+      );
+    }
+    const chunks: Blob[] = [];
+    const rec = new MediaRecorder(stream);
+    recorder.current = rec;
+    const started = Date.now();
+    rec.ondataavailable = (e) => {
+      if (e.data.size > 0) chunks.push(e.data);
+    };
+    rec.onstop = async () => {
+      for (const tr of stream.getTracks()) tr.stop();
+      setMic("transcribing");
+      const ctrl = new AbortController();
+      abort.current = ctrl;
+      try {
+        if (Date.now() - started < 600) throw new InputError("no_speech");
+        const { wav } = await toWav(new Blob(chunks, { type: rec.mimeType }));
+        const text = await transcribe(wav, ctrl.signal);
+        if (!text) throw new InputError("no_speech");
+        onChange(text);
+        setMicNote(true);
+        setMic("idle");
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+        const code = err instanceof InputError ? err.code : "failed";
+        // Without a key on the server, mock mode falls back to the canned transcript.
+        if (code === "not_configured" && usingMock) {
+          onChange(MOCK_TRANSCRIPT);
+          setMic("idle");
+          return;
+        }
+        fail(code);
+      }
+    };
+    rec.start();
+    setSeconds(0);
+    setMic("listening");
+    const tick = () => {
+      const s = Math.floor((Date.now() - started) / 1000);
+      setSeconds(s);
+      if (s >= MAX_SECONDS) return stopRecording();
+      timers.current = [setTimeout(tick, 250)];
+    };
+    tick();
+  };
+
+  const micMessage = (code: InputErrorCode | null) => {
+    switch (code) {
+      case "mic_denied":
+        return t.mic.denied;
+      case "mic_unavailable":
+        return t.mic.unavailable;
+      case "no_speech":
+        return t.mic.noSpeech;
+      case "not_configured":
+        return t.mic.notConfigured;
+      case "rate_limited":
+        return t.photo.rateLimited;
+      default:
+        return t.mic.error;
+    }
+  };
+
+  /* ── Photo ──────────────────────────────────────────────────────────────────────────── */
+
+  const clearPhoto = () => {
+    abort.current?.abort();
+    setPhoto(null);
+    setReading(null);
+    setPhotoError(null);
+    setPhotoBusy(false);
+    setDateApplied(null);
+  };
+
+  const onPhoto = async (file: File) => {
+    clearPhoto();
+    setPhoto({ name: file.name, url: URL.createObjectURL(file) });
+    setPhotoBusy(true);
+    if (canned) {
+      timers.current = [
+        setTimeout(() => {
+          setReading({ ...MOCK_PHOTO_READING }); // MOCK reading
+          setPhotoBusy(false);
+        }, 1400),
+      ];
+      return;
+    }
+    const ctrl = new AbortController();
+    abort.current = ctrl;
+    try {
+      if (!/^image\/(jpeg|png|webp|gif|heic|heif)$/.test(file.type) && file.type !== "") {
+        throw new InputError("unsupported_type");
+      }
+      const small = await shrinkImage(file).catch(() => {
+        throw new InputError("unsupported_type");
+      });
+      setReading(await readImage(small, ctrl.signal));
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return;
+      const code = err instanceof InputError ? err.code : "failed";
+      if (code === "not_configured" && usingMock) setReading({ ...MOCK_PHOTO_READING });
+      else setPhotoError(code);
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const photoMessage = (code: InputErrorCode) =>
+    code === "too_large"
+      ? t.photo.tooLarge
+      : code === "unsupported_type"
+        ? t.photo.unsupported
+        : code === "not_configured"
+          ? t.photo.notConfigured
+          : code === "rate_limited"
+            ? t.photo.rateLimited
+            : t.photo.failed;
+
+  const useQuestion = () => {
+    if (!reading) return;
+    if (reading.cau_hoi_goi_y) onChange(reading.cau_hoi_goi_y);
+    if (reading.ngay_tren_giay && onApplyDate) {
+      onApplyDate(reading.ngay_tren_giay);
+      setDateApplied(reading.ngay_tren_giay);
+    }
+    textareaRef?.current?.focus();
   };
 
   const canSend = value.trim().length > 0 && !busy;
@@ -93,10 +298,11 @@ export function AskBar({
   const extras = (
     <>
       <IconButton
-        label={t.mic.idle}
-        onClick={startMic}
+        label={mic === "listening" ? t.mic.stop : t.mic.idle}
+        onClick={() => void startMic()}
         film="mic-button"
         pressed={mic === "listening"}
+        disabled={mic === "transcribing"}
         className={cn(mic === "listening" && "text-brand", mic === "error" && "text-amber")}
       >
         {mic === "listening" && (
@@ -114,6 +320,8 @@ export function AskBar({
         )}
         {mic === "transcribing" ? (
           <Loader2 aria-hidden className="size-5 motion-safe:animate-spin" />
+        ) : mic === "listening" && !canned ? (
+          <Square aria-hidden className="size-4 fill-current" />
         ) : (
           <Mic aria-hidden className="size-5" />
         )}
@@ -122,20 +330,21 @@ export function AskBar({
         label={t.photo.label}
         onClick={() => fileRef.current?.click()}
         film="photo-button"
+        disabled={photoBusy}
       >
         <ImagePlus aria-hidden className="size-5" />
       </IconButton>
       <input
         ref={fileRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/*"
         capture="environment"
         className="sr-only"
         tabIndex={-1}
         aria-hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) setPhoto(f.name);
+          if (f) void onPhoto(f);
           e.target.value = "";
         }}
       />
@@ -214,26 +423,119 @@ export function AskBar({
         </AnimatePresence>
       </form>
 
-      <div aria-live="polite" className="min-h-0 px-1 text-sm">
-        {mic === "listening" && <p className="text-brand">{t.mic.listening}</p>}
+      <div data-film="voice-status" aria-live="polite" className="min-h-0 px-1 text-sm">
+        {mic === "listening" && (
+          <p className="flex items-center gap-2 text-brand">
+            {t.mic.listening}
+            {!canned && (
+              <span className="font-mono text-xs text-ink-3 tabular-nums">
+                {t.mic.seconds(seconds, MAX_SECONDS)}
+              </span>
+            )}
+          </p>
+        )}
         {mic === "transcribing" && <p className="text-ink-2">{t.mic.transcribing}</p>}
-        {mic === "error" && <p className="text-amber">{t.mic.error}</p>}
-        {photo && (
-          <p className="flex items-center gap-2 text-ink-2">
-            <ImagePlus aria-hidden className="size-4" />
-            {t.photo.attached}: <span className="font-mono text-xs">{photo}</span>
-            <span className="text-ink-3">({t.photo.notConnected})</span>
+        {mic === "error" && (
+          <p className="flex items-start gap-1.5 text-amber">
+            <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+            {micMessage(micError)}
+          </p>
+        )}
+        {micNote && mic === "idle" && <p className="text-ink-3">{t.mic.check}</p>}
+      </div>
+
+      {photo && (
+        <section
+          data-film="photo-summary"
+          aria-live="polite"
+          className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-3"
+        >
+          <div className="flex items-center gap-3">
+            {/* biome-ignore lint/performance/noImgElement: local object URL preview, not an optimisable asset */}
+            <img
+              src={photo.url}
+              alt=""
+              className="size-12 shrink-0 rounded-md border border-line object-cover"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-mono text-xs text-ink-3">{photo.name}</p>
+              {photoBusy && (
+                <p className="flex items-center gap-1.5 text-sm text-ink-2">
+                  <Loader2 aria-hidden className="size-4 text-brand motion-safe:animate-spin" />
+                  {t.photo.reading}
+                </p>
+              )}
+              {reading && (
+                <p lang="vi" className="text-sm font-semibold text-ink">
+                  {reading.loai_giay_to}
+                </p>
+              )}
+            </div>
             <button
               type="button"
-              onClick={() => setPhoto(null)}
+              onClick={clearPhoto}
               aria-label={t.photo.remove}
-              className="inline-flex size-11 items-center justify-center rounded-md hover:bg-surface-sunk"
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-md hover:bg-surface-sunk"
             >
               <X aria-hidden className="size-4" />
             </button>
-          </p>
-        )}
-      </div>
+          </div>
+
+          {photoError && (
+            <p className="flex items-start gap-1.5 text-sm text-amber">
+              <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+              {photoMessage(photoError)}
+            </p>
+          )}
+
+          {reading && (
+            <>
+              {!reading.la_giay_to_thue && (
+                <p className="flex items-start gap-1.5 text-sm text-amber">
+                  <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+                  {t.photo.notTax}
+                </p>
+              )}
+              {reading.tom_tat && (
+                <p lang="vi" className="text-[0.9375rem] leading-[1.6] text-ink-2">
+                  {reading.tom_tat}
+                </p>
+              )}
+              {reading.ngay_tren_giay && (
+                <p className="font-mono text-xs text-ink-3 tabular-nums">
+                  {t.photo.dateFound(formatDate(reading.ngay_tren_giay))}
+                </p>
+              )}
+              <p className="flex items-center gap-1.5 text-xs text-ink-3">
+                <FileSearch aria-hidden className="size-3.5" />
+                {t.photo.readBy}
+              </p>
+              {t.sourceNote && <p className="text-xs text-ink-3">{t.sourceNote}</p>}
+              {reading.cau_hoi_goi_y && (
+                <div className="flex flex-col gap-2 rounded-md bg-surface-sunk px-3 py-2">
+                  <p lang="vi" className="text-[0.9375rem] text-ink">
+                    “{reading.cau_hoi_goi_y}”
+                  </p>
+                  <button
+                    type="button"
+                    data-film="photo-use-question"
+                    onClick={useQuestion}
+                    className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-ink transition-colors hover:bg-paper"
+                  >
+                    {t.photo.useQuestion}
+                  </button>
+                </div>
+              )}
+              {dateApplied && (
+                <p className="flex items-center gap-1.5 text-xs font-medium text-brand">
+                  <CalendarCheck aria-hidden className="size-3.5" />
+                  {t.photo.dateApplied(formatDate(dateApplied))}
+                </p>
+              )}
+            </>
+          )}
+        </section>
+      )}
     </div>
   );
 }

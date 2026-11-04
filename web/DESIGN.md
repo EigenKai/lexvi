@@ -474,6 +474,8 @@ same frames on every take.
   `profile-sheet`, `disclaimer`, `mock-flag`, `nav-{ask|canh-bao|ho-so|kiem-thu}` (left rail, ≥1024) and
   `nav-mobile-{…}` (bottom nav, <1024). The ribbon repeated inside the drawer uses the `drawer-` prefix
   (`drawer-verification-ribbon`, `drawer-attempt-counter`, `drawer-check-*`) so every hook is unique on screen.
+  Voice/photo: `voice-status`, `photo-summary`, `photo-use-question` (with the existing `mic-button`,
+  `photo-button`; film mode uses canned, illustrative results so takes stay identical).
   Ask (real backend): `run-meta`, `drawer-claim`, `relation-list`. Benchmark (`/kiem-thu`): `benchmark-panel`,
   `benchmark-metric-{dan_dieu_cu|dung_can_cu|trich_sai|can_xac_nhan}`, `benchmark-table`, `benchmark-empty`.
   Profile (`/ho-so`): `profile-form`, `profile-saved`.

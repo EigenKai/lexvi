@@ -68,6 +68,13 @@ export const en: Dict = {
     listening: "Listening…",
     transcribing: "Transcribing your voice…",
     error: "No voice detected — please type your question",
+    stop: "Stop recording",
+    seconds: (s: number, max: number) => `${s}/${max} s`,
+    denied: "The browser hasn't allowed the microphone — allow it, or type your question.",
+    unavailable: "No microphone found — please type your question.",
+    noSpeech: "Couldn't hear any speech — try again, or type your question.",
+    notConfigured: "Voice input isn't configured on the server — please type your question.",
+    check: "Check the words before sending.",
   },
 
   photo: {
@@ -75,6 +82,17 @@ export const en: Dict = {
     attached: "Photo attached",
     notConnected: "Demo: photo content is not read yet",
     remove: "Remove photo",
+    reading: "Reading the photo…",
+    readBy: "Read by Muse Spark — check it against your paper.",
+    notTax: "This photo doesn't look like a tax document.",
+    dateFound: (d: string) => `Date on the paper: ${d}`,
+    useQuestion: "Use this question",
+    dateApplied: (d: string) => `Applied date set from the photo: ${d}`,
+    tooLarge: "The photo is too large.",
+    unsupported: "Only JPG, PNG or WebP photos.",
+    notConfigured: "Photo reading isn't configured on the server.",
+    failed: "Couldn't read the photo. Try again, or type your question.",
+    rateLimited: "The server is busy — try again in a few minutes.",
   },
 
   profile: {

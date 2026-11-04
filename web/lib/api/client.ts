@@ -197,3 +197,80 @@ export async function ingest(
   await wait(opts.latencyMs, opts.signal);
   return mockIngest(hoSo);
 }
+
+/* ── Voice and photo input (Next.js routes in this app; key stays server-side) ─────────────── */
+
+export interface PhotoReading {
+  la_giay_to_thue: boolean;
+  loai_giay_to: string;
+  tom_tat: string;
+  /** "" or YYYY-MM-DD */
+  ngay_tren_giay: string;
+  cau_hoi_goi_y: string;
+}
+
+/** Error codes from app/api/transcribe and app/api/read-image (plus client-side ones). */
+export type InputErrorCode =
+  | "not_configured"
+  | "no_speech"
+  | "too_large"
+  | "unsupported_type"
+  | "rate_limited"
+  | "mic_denied"
+  | "mic_unavailable"
+  | "failed";
+
+export class InputError extends Error {
+  constructor(readonly code: InputErrorCode) {
+    super(code);
+    this.name = "InputError";
+  }
+}
+
+async function inputError(res: Response): Promise<InputError> {
+  let code = "";
+  try {
+    const j: unknown = await res.json();
+    if (isObj(j) && typeof j.error === "string") code = j.error;
+  } catch {
+    // no JSON body
+  }
+  const known: InputErrorCode[] = [
+    "not_configured",
+    "no_speech",
+    "too_large",
+    "unsupported_type",
+    "rate_limited",
+  ];
+  return new InputError((known as string[]).includes(code) ? (code as InputErrorCode) : "failed");
+}
+
+/** WAV blob → transcript (Muse Voice Transcribe, Vietnamese-biased). */
+export async function transcribe(wav: Blob, signal?: AbortSignal): Promise<string> {
+  const res = await fetch("/api/transcribe", {
+    method: "POST",
+    headers: { "content-type": "audio/wav" },
+    body: wav,
+    signal,
+  });
+  if (!res.ok) throw await inputError(res);
+  const j: unknown = await res.json();
+  return isObj(j) ? str(j.transcript) : "";
+}
+
+/** Photo (already downscaled JPEG) → what Muse Spark read + a drafted question. */
+export async function readImage(image: Blob, signal?: AbortSignal): Promise<PhotoReading> {
+  const body = new FormData();
+  body.append("image", image, "photo.jpg");
+  const res = await fetch("/api/read-image", { method: "POST", body, signal });
+  if (!res.ok) throw await inputError(res);
+  const j: unknown = await res.json();
+  if (!isObj(j)) throw new InputError("failed");
+  return {
+    la_giay_to_thue: j.la_giay_to_thue === true,
+    loai_giay_to: str(j.loai_giay_to),
+    tom_tat: str(j.tom_tat),
+    ngay_tren_giay: /^\d{4}-\d{2}-\d{2}$/.test(str(j.ngay_tren_giay)) ? str(j.ngay_tren_giay) : "",
+    cau_hoi_goi_y: str(j.cau_hoi_goi_y),
+  };
+}

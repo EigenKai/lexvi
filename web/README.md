@@ -24,6 +24,19 @@ the other team members.
   "no results yet" until a real run is imported (see below); it never shows placeholder numbers.
 - **Profile** (`/ho-so`): the business profile every answer depends on (stored in this browser only).
 
+### Voice and photo input
+
+- **Voice:** the mic records in the browser, converts to 24 kHz mono WAV and sends it to `/api/transcribe`,
+  which forwards it to Muse Voice Transcribe (`POST /v1/asr/transcribe`, Vietnamese-biased). The transcript
+  fills the question box; the owner checks it before sending. Recording stops after 60 s.
+- **Photo:** a photo of a tax notice or invoice is downscaled and sent to `/api/read-image`, where Muse Spark
+  reads it and returns a short summary and a drafted Vietnamese question (never an answer). The owner sends
+  that question through the normal verified `/ask`; a date found on the paper can set the applied date.
+- Both routes run inside this Next.js app and need `MODEL_API_KEY` in `.env.local` (server-only). They accept
+  requests from this app's own pages only, log request ids and status codes only, and store nothing.
+  Recordings and photos are sent to the Meta Model API. Transcription costs $0.18 per audio hour (Meta's
+  published price).
+
 ### Backend connection
 
 With `NEXT_PUBLIC_LEXVI_API_URL` set, the Ask screen calls `POST /ask`, then `GET /runs/{run_id}` to replay the
