@@ -59,8 +59,9 @@ Evaluation against plain RAG: `pyenv/bin/python -m scripts.run_eval`.
 
 ## Deploy on Render (the live demo)
 
-The live demo runs this backend as a Render web service. It is created from the public repository URL, branch
-`fix/qa-backend`, so deploys are manual.
+The live demo runs this backend as a Render web service at `https://lexvi-api.onrender.com` (`GET /health`).
+It was created from the public repository URL, branch `fix/qa-backend` (merged into `main` on 4 Nov 2026), so
+deploys are manual.
 
 | Setting | Value |
 |---|---|
@@ -92,16 +93,33 @@ The public-deploy guards in `lexvi/limits.py` are all off unless set:
 
 Role A's offline data audit passes: **30 documents, 689 articles, 3,586 provision records,
 261 graph edges, 20 reference questions (11 temporal traps)**. All 27 reference citations are
-located on source pages; 13 stale-citation examples are rejected. `python -m pytest -q`: **86 passed**.
+located on source pages; 13 stale-citation examples are rejected. `python -m pytest -q`: **107 passed**
+(offline; install `requirements-data.txt` too for the corpus tests).
 66 of the 261 edges (Decree 70/2025 → Decree 123/2020) and the phrase-replacement scope of the 10
 Decree 141 edges were added by role C's QA on 4 Nov 2026 and await role A's review (`ghi_chu`).
 
-The demo video shows the web UI with prepared example responses built from the real corpus; the live backend in
-this repo produced the benchmark (`scripts/run_eval.py`, run 04/11/2026, N = 20; see issue on the outcome).
+### LexVi vs plain RAG
 
-These are corpus/verification checks, not Spark answer accuracy. Spark vs plain-RAG figures have
-not been measured here; role B can run `scripts/run_eval.py` with its own API key. The reference
-answers and graph are agent-reviewed and still require human legal sign-off.
+`scripts/run_eval.py`, run once on 04/11/2026, 11:19–11:33 ICT, on the team-written test set
+(`data/questions.json`, 20 questions, 11 of them date traps). Both systems use `muse-spark-1.3` and the full corpus.
+Plain RAG is BM25 top 6 plus one Spark call. Counts, not rates:
+
+| | Plain RAG | LexVi |
+|---|---|---|
+| Cited a provision not in force on the applied date | 3/20 | 0/20 |
+| Cited the expected legal basis (at least one article in `dieu_dung`) | 14/20 | 20/20 |
+| Quote not verbatim | 0/20 | 0/20 |
+| No citation | 1/20 | 0/20 |
+| Median time per question | 8.4 s | 30.6 s |
+
+How to read it:
+- LexVi's 0 outdated citations holds by construction: its submit step refuses provisions not in force on the date,
+  and the scorer uses the same `store.status()`. The comparison that matters is the expected basis, 20 against 14.
+- "Expected basis" checks that the right article was cited, not that the whole answer is legally correct.
+- N = 20 on a set the team wrote, one run of a non-deterministic agent. This is not a general accuracy claim.
+
+The demo video shows the web UI with prepared example responses built from the real corpus; the numbers scene uses
+the counts above. The reference answers and graph are agent-reviewed and still require human legal sign-off.
 
 ## Data sources
 
