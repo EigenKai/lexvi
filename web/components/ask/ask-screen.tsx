@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useProfile, useT } from "@/components/providers";
+import { LiveBanner } from "@/components/shell/live-banner";
 import { MockBanner } from "@/components/shell/mock-banner";
 import { ApiError, ask } from "@/lib/api/client";
 import type { AskResponseMoRong, HoSo, IsoDate, RunMeta } from "@/lib/api/contract";
@@ -47,7 +48,9 @@ export function AskScreen() {
   const [result, setResult] = useState<Result | null>(null);
   const [lastAsked, setLastAsked] = useState<string | null>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [errorKind, setErrorKind] = useState<"failed" | "timeout" | "length">("failed");
+  const [errorKind, setErrorKind] = useState<"failed" | "timeout" | "length" | "limit" | "down">(
+    "failed",
+  );
   const [profileOpen, setProfileOpen] = useState(false);
 
   const abort = useRef<AbortController | null>(null);
@@ -121,7 +124,11 @@ export function AskScreen() {
             ? "timeout"
             : err instanceof ApiError && err.status === 422
               ? "length"
-              : "failed",
+              : err instanceof ApiError && err.status === 429
+                ? "limit"
+                : err instanceof ApiError && err.status === 503
+                  ? "down"
+                  : "failed",
         );
         setPhase("error");
       }
@@ -170,7 +177,11 @@ export function AskScreen() {
       ? t.ask.errTimeout
       : errorKind === "length"
         ? t.ask.errLength
-        : t.ask.error;
+        : errorKind === "limit"
+          ? t.ask.errLimit
+          : errorKind === "down"
+            ? t.ask.errDown
+            : t.ask.error;
   const variants = reduced ? presenceReduced : presence;
 
   return (
@@ -178,6 +189,7 @@ export function AskScreen() {
       <div className="mx-auto flex w-full max-w-[720px] flex-col gap-6 px-6 pt-10 pb-16 max-sm:px-4 max-sm:pt-6">
         <header className="flex flex-col gap-2">
           <MockBanner />
+          <LiveBanner />
           <h1 className="font-display text-[2rem] leading-[1.3] font-normal tracking-[-0.01em] text-ink max-sm:text-[1.625rem] max-sm:font-semibold max-sm:tracking-normal">
             {t.ask.title}
           </h1>

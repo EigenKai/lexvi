@@ -42,6 +42,16 @@ export const vi = {
   mockNote:
     "Dựng từ kho văn bản thật: nội dung điều khoản trích nguyên văn từ PDF chính thức, nhưng câu trả lời được chuẩn bị cho bản demo, không do hệ thống tạo trực tiếp.",
   mockFlag: "Phản hồi mẫu",
+  live: {
+    badge: "Trực tiếp · Muse Spark",
+    checking: "Đang kết nối máy chủ trực tiếp…",
+    waking: "Đang đánh thức máy chủ trực tiếp (gói miễn phí), mất khoảng một phút…",
+    ready:
+      "Câu trả lời đến trực tiếp từ Muse Spark, mất khoảng một phút. Mỗi người dùng có giới hạn lượt hỏi.",
+    down: "Máy chủ trực tiếp chưa phản hồi. Hãy thử lại sau một phút, hoặc dùng phản hồi mẫu.",
+    toPrepared: "Phản hồi mẫu (tức thì) →",
+    tryLive: "Dùng thử trực tiếp →",
+  },
   openArticle: "Mở điều khoản",
   answerReady: "Đã có câu trả lời.",
 
@@ -58,6 +68,8 @@ export const vi = {
     error: "Không lấy được câu trả lời. Hãy thử lại.",
     errTimeout: "Máy chủ trả lời quá lâu. Hãy thử lại.",
     errLength: "Câu hỏi cần từ 3 đến 2.000 ký tự.",
+    errLimit: "Bản demo trực tiếp đang chạm giới hạn. Hãy thử lại sau, hoặc dùng phản hồi mẫu.",
+    errDown: "Máy chủ trực tiếp không phản hồi. Hãy thử lại sau một phút.",
     tooLong: (n: number) => `${n.toLocaleString("vi-VN")} / 2.000 ký tự`,
     empty: "Nhập câu hỏi hoặc chọn một câu hỏi mẫu để bắt đầu.",
     elapsed: (s: number) => `${s} giây`,
@@ -247,6 +259,8 @@ export const vi = {
       "Tệp PDF này không có lớp chữ (có thể là bản quét). Hãy dùng tệp PDF chọn được chữ.",
     errBadPdf: "Tệp này không phải PDF đọc được.",
     errNeedFile: "Máy chủ cần một tệp PDF. Hãy chọn một tệp PDF có lớp chữ.",
+    errLimit: "Bản demo trực tiếp đang chạm giới hạn. Hãy thử lại sau, hoặc dùng phản hồi mẫu.",
+    errDown: "Máy chủ trực tiếp không phản hồi. Hãy thử lại sau một phút.",
     replay: (n: string) =>
       `Phát lại lịch sử: ${/NĐ/.test(n) ? "Nghị định" : "văn bản"} ${n} được bổ sung vào kho`,
     issued: (d: string) => `Ban hành ${d}`,
@@ -329,6 +343,7 @@ export const vi = {
     sub: "Tra cứu thuế có trích dẫn cho hộ kinh doanh. LexVi chỉ trả lời theo văn bản còn hiệu lực vào ngày bạn hỏi, và mở đúng điều khoản đã dựa vào.",
     watch: "Xem video demo",
     try: "Dùng thử bản demo",
+    tryLive: "hoặc dùng thử trực tiếp với Muse Spark →",
     builtOn: "Xây dựng trên Muse Spark · Meta Model API",
     builtOnFull: "Xây dựng trên Muse Spark · Muse Voice Transcribe · Meta Model API",
     scroll: "Cuộn xuống: buổi sáng của chú Minh",

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useProfile, useT } from "@/components/providers";
+import { LiveBanner } from "@/components/shell/live-banner";
 import { MockBanner } from "@/components/shell/mock-banner";
 import { ApiError, ingest } from "@/lib/api/client";
 import type { HoSo, IngestResponse } from "@/lib/api/contract";
@@ -79,7 +80,11 @@ export function ImpactScreen() {
                 ? t.impact.errScanned
                 : err instanceof ApiError && err.status === 400
                   ? t.impact.errBadPdf
-                  : t.impact.errFailed,
+                  : err instanceof ApiError && err.status === 429
+                    ? t.impact.errLimit
+                    : err instanceof ApiError && err.status === 503
+                      ? t.impact.errDown
+                      : t.impact.errFailed,
         );
         setPhase("error");
       }
@@ -140,6 +145,7 @@ export function ImpactScreen() {
       <div className="mx-auto flex w-full max-w-[720px] flex-col gap-6 px-6 pt-10 pb-16 max-sm:px-4 max-sm:pt-6">
         <header className="flex flex-col gap-2">
           <MockBanner />
+          <LiveBanner />
           <h1 className="font-display text-[2rem] leading-[1.3] font-normal tracking-[-0.01em] text-ink max-sm:text-[1.625rem] max-sm:font-semibold max-sm:tracking-normal">
             {t.impact.title}
           </h1>

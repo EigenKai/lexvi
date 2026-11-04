@@ -12,7 +12,16 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/components/providers";
 import { ease } from "@/lib/motion";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { Caption, FooterNote, KineticLine, Mark, MetaPill, TryButton, WatchButton } from "./bits";
+import {
+  Caption,
+  FooterNote,
+  KineticLine,
+  Mark,
+  MetaPill,
+  TryButton,
+  TryLiveLink,
+  WatchButton,
+} from "./bits";
 import { CafeScene, PHONE_SCREEN } from "./cafe-scene";
 import { ChatScreen, Phone, SearchScreen } from "./phone";
 
@@ -69,6 +78,7 @@ function Hero({ onWatch }: { onWatch: () => void }) {
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         <WatchButton onClick={onWatch} />
         <TryButton />
+        <TryLiveLink />
       </div>
       <MetaPill text={L.builtOn} className="mt-4" />
     </div>

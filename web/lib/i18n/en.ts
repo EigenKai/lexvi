@@ -42,6 +42,16 @@ export const en: Dict = {
   mockNote:
     "Built from the real legal corpus: article texts are verbatim from the official PDFs, but these answers were prepared for the demo, not produced live by the system.",
   mockFlag: "Prepared example",
+  live: {
+    badge: "Live · Muse Spark",
+    checking: "Connecting to the live server…",
+    waking: "Waking the live server (free hosting). This takes about a minute…",
+    ready:
+      "Answers come live from Muse Spark, in Vietnamese, and take about a minute. Limited per visitor.",
+    down: "The live server isn't responding. Try again in a minute, or use the prepared examples.",
+    toPrepared: "Prepared examples (instant) →",
+    tryLive: "Try it live →",
+  },
   openArticle: "Open article",
   answerReady: "Answer ready.",
 
@@ -58,6 +68,9 @@ export const en: Dict = {
     error: "Couldn't get an answer. Please try again.",
     errTimeout: "The server took too long to answer. Please try again.",
     errLength: "A question needs 3 to 2,000 characters.",
+    errLimit:
+      "The live demo is at its limit right now. Try again later, or use the prepared examples.",
+    errDown: "The live server didn't respond. Try again in a minute.",
     tooLong: (n: number) => `${n.toLocaleString("en-US")} / 2,000 characters`,
     empty: "Type a question or pick a sample question to start.",
     elapsed: (s: number) => `${s} s`,
@@ -248,6 +261,9 @@ export const en: Dict = {
       "This PDF has no text layer (it may be a scan). Please use a PDF with selectable text.",
     errBadPdf: "This file isn't a readable PDF.",
     errNeedFile: "The server needs a PDF file. Please choose a PDF with a text layer.",
+    errLimit:
+      "The live demo is at its limit right now. Try again later, or use the prepared examples.",
+    errDown: "The live server didn't respond. Try again in a minute.",
     replay: (n: string) =>
       `Historical replay: ${/NĐ/.test(n) ? "Decree" : "document"} ${n} added to the corpus`,
     issued: (d: string) => `Issued ${d}`,
@@ -330,6 +346,7 @@ export const en: Dict = {
     sub: "Tax lookup with citations for Vietnamese household businesses. LexVi answers only from the rules in force on the date you ask, and opens the exact article it relied on.",
     watch: "Watch the demo",
     try: "Try the demo",
+    tryLive: "or try it live with Muse Spark →",
     builtOn: "Built on Muse Spark · Meta Model API",
     builtOnFull: "Built on Muse Spark · Muse Voice Transcribe · Meta Model API",
     scroll: "Scroll: Mr. Minh's morning",

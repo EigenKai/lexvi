@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "@/components/providers";
 import { LangToggle } from "@/components/shell/lang-toggle";
 import { ease } from "@/lib/motion";
-import { KineticLine, Mark, MetaPill, TryButton, WatchButton } from "./bits";
+import { KineticLine, Mark, MetaPill, TryButton, TryLiveLink, WatchButton } from "./bits";
 import { FeatureTour } from "./feature-tour";
 import { Proof } from "./proof";
 import { Saved } from "./saved";
@@ -100,6 +100,7 @@ function Final({ onWatch }: { onWatch: () => void }) {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <WatchButton onClick={onWatch} film="landing-watch-final" />
           <TryButton film="landing-try-final" />
+          <TryLiveLink film="landing-try-live-final" />
         </div>
         <MetaPill text={L.builtOnFull} className="mt-8" />
         <p className="mt-8 font-sans text-base text-ink-2">{L.roles}</p>

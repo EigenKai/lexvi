@@ -6,6 +6,7 @@ import { motion, useReducedMotion, useSpring, useTransform } from "motion/react"
 import Link from "next/link";
 import { useEffect } from "react";
 import { useLocale } from "@/components/providers";
+import { isLiveBuild, LIVE_SITE } from "@/lib/api/sites";
 import { ease } from "@/lib/motion";
 
 /** Where "Try the demo" goes: the Ask screen on this site. */
@@ -65,6 +66,30 @@ export function TryButton({
       {t.landing.try}
       <ArrowRight aria-hidden className="size-4" />
     </Link>
+  );
+}
+
+/** Prepared site only: a quiet link to the same screen on the live copy of the app. */
+export function TryLiveLink({
+  className,
+  film = "landing-try-live",
+}: {
+  className?: string;
+  film?: string;
+}) {
+  const { t } = useLocale();
+  if (isLiveBuild || !LIVE_SITE) return null;
+  return (
+    <a
+      href={`${LIVE_SITE}${TRY_HREF}`}
+      data-film={film}
+      className={cn(
+        "relative inline-flex min-h-11 items-center rounded-md bg-surface/85 px-2.5 font-sans text-sm font-medium text-brand underline-offset-4 hover:underline",
+        className,
+      )}
+    >
+      {t.landing.tryLive}
+    </a>
   );
 }
 

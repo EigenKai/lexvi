@@ -1,4 +1,11 @@
-import { jsonError, logStatus, metaConfig, requestId, sameOrigin } from "@/lib/server/meta";
+import {
+  jsonError,
+  logStatus,
+  metaConfig,
+  overLimit,
+  requestId,
+  sameOrigin,
+} from "@/lib/server/meta";
 
 /**
  * POST /api/transcribe — body: a mono 16-bit PCM WAV (16 or 24 kHz), as produced by
@@ -30,6 +37,7 @@ export async function POST(req: Request): Promise<Response> {
   if (!sameOrigin(req)) return jsonError(403, "forbidden", rid);
   const cfg = metaConfig();
   if (!cfg) return jsonError(503, "not_configured", rid);
+  if (overLimit(req, "transcribe")) return jsonError(429, "rate_limited", rid);
 
   const declared = Number(req.headers.get("content-length") ?? 0);
   if (declared > MAX_BYTES) return jsonError(413, "too_large", rid);

@@ -1,5 +1,12 @@
 import { isIsoDate } from "@/lib/format";
-import { jsonError, logStatus, metaConfig, requestId, sameOrigin } from "@/lib/server/meta";
+import {
+  jsonError,
+  logStatus,
+  metaConfig,
+  overLimit,
+  requestId,
+  sameOrigin,
+} from "@/lib/server/meta";
 
 /**
  * POST /api/read-image — multipart field `image` (jpeg/png/webp). Muse Spark reads the photo
@@ -58,6 +65,7 @@ export async function POST(req: Request): Promise<Response> {
   if (!sameOrigin(req)) return jsonError(403, "forbidden", rid);
   const cfg = metaConfig();
   if (!cfg) return jsonError(503, "not_configured", rid);
+  if (overLimit(req, "read-image")) return jsonError(429, "rate_limited", rid);
 
   let file: File | null = null;
   try {

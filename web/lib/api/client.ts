@@ -80,6 +80,87 @@ function withTimeout(signal?: AbortSignal): AbortSignal {
   return signal ? AbortSignal.any([signal, timeout]) : timeout;
 }
 
+/* ── Waking the live backend ────────────────────────────────────────────────────────────────── */
+
+/**
+ * The live backend runs on a free instance that sleeps when idle and takes about a minute to wake.
+ * A scheduled ping keeps it warm, but a missed ping or a redeploy can still leave it asleep. So
+ * before the first call, poll /health until it answers {ok:true}; LiveBanner shows the state.
+ */
+export type BackendState = "idle" | "waking" | "ready" | "down";
+const WAKE_LIMIT_MS = 180_000;
+let backend: BackendState = "idle";
+let waking: Promise<boolean> | null = null;
+const listeners = new Set<() => void>();
+
+function setBackend(next: BackendState) {
+  backend = next;
+  for (const fn of listeners) fn();
+}
+
+export function backendState(): BackendState {
+  return backend;
+}
+
+export function subscribeBackend(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => {
+    listeners.delete(fn);
+  };
+}
+
+/** Resolves true once /health answers ok (at once in mock mode), false after WAKE_LIMIT_MS. */
+export function wakeBackend(): Promise<boolean> {
+  if (!API_URL || backend === "ready") return Promise.resolve(true);
+  if (!waking) {
+    const base = API_URL;
+    waking = (async () => {
+      const started = Date.now();
+      for (let attempt = 0; Date.now() - started < WAKE_LIMIT_MS; attempt++) {
+        try {
+          const res = await fetch(`${base}/health`, {
+            cache: "no-store",
+            signal: AbortSignal.timeout(10_000),
+          });
+          const j: unknown = res.ok ? await res.json() : null;
+          if (isObj(j) && j.ok === true) {
+            setBackend("ready");
+            return true;
+          }
+        } catch {
+          // Asleep: the host's wake-up page has no CORS headers, so fetch fails. Try again.
+        }
+        if (attempt === 0) setBackend("waking");
+        await wait(3000);
+      }
+      setBackend("down");
+      return false;
+    })().finally(() => {
+      waking = null;
+    });
+  }
+  return waking;
+}
+
+/** Wait for the backend before a call, honouring the caller's abort. */
+async function backendReady(signal?: AbortSignal): Promise<void> {
+  const ok = await wakeBackend();
+  if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+  if (!ok) throw new ApiError("http", 503);
+}
+
+/** fetch, but a network failure (the server went away) becomes a 503 and re-arms the wake-up. */
+async function callBackend(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (err) {
+    const name = (err as Error).name;
+    if (name === "AbortError" || name === "TimeoutError") throw err;
+    if (backend === "ready") setBackend("idle");
+    throw new ApiError("http", 503);
+  }
+}
+
 /**
  * POST /ask, then GET /runs/{run_id} for the verification steps and the article texts the agent
  * read (best effort: without the run the UI shows the final state only). Mock mode returns the
@@ -87,7 +168,8 @@ function withTimeout(signal?: AbortSignal): AbortSignal {
  */
 export async function ask(req: AskRequest, opts: ClientOptions): Promise<AskResult> {
   if (API_URL) {
-    const res = await fetch(`${API_URL}/ask`, {
+    await backendReady(opts.signal);
+    const res = await callBackend(`${API_URL}/ask`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(req),
@@ -194,10 +276,11 @@ export async function ingest(
   if (API_URL) {
     if (!file) throw new ApiError("needs-file");
     if (file.size > MAX_PDF_BYTES) throw new ApiError("http", 413);
+    await backendReady(opts.signal);
     const body = new FormData();
     body.append("pdf", file);
     body.append("ho_so", JSON.stringify(hoSo));
-    const res = await fetch(`${API_URL}/ingest`, {
+    const res = await callBackend(`${API_URL}/ingest`, {
       method: "POST",
       body,
       signal: withTimeout(opts.signal),
