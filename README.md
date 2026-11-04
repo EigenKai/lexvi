@@ -57,6 +57,37 @@ pyenv/bin/uvicorn lexvi.api:app --port 8000
 Data: see [`data/README.md`](data/README.md). Role-A handoff: [`docs/ROLE_A_HANDOFF.md`](docs/ROLE_A_HANDOFF.md).
 Evaluation against plain RAG: `pyenv/bin/python -m scripts.run_eval`.
 
+## Deploy on Render (the live demo)
+
+The live demo runs this backend as a Render web service. It is created from the public repository URL, branch
+`fix/qa-backend`, so deploys are manual.
+
+| Setting | Value |
+|---|---|
+| Runtime | Python 3 (`.python-version` pins 3.12) |
+| Build | `pip install -r requirements.txt` |
+| Start | `uvicorn lexvi.api:app --host 0.0.0.0 --port $PORT`, one worker, because the limits live in memory |
+| Health check | `/health` |
+
+**Environment:** `MODEL_API_KEY` (secret), `MODEL_API_MODEL=muse-spark-1.3`, and `LEXVI_CORS_ORIGINS` (the live site).
+The public-deploy guards in `lexvi/limits.py` are all off unless set:
+
+- `LEXVI_REQUIRE_ORIGIN=1`: `POST /ask` and `/ingest` need an `Origin` listed in `LEXVI_CORS_ORIGINS`. CORS on its own
+  binds only browsers.
+- `LEXVI_BUDGET_USD_DAY=10`: the estimated spend of all visitors over a rolling 24 h.
+  - It is computed from the metered token use (`su_dung` in each response) at Meta's list prices.
+  - `0` turns live answers off.
+- `LEXVI_LIMIT_ASK=4/h,10/d` and `LEXVI_LIMIT_INGEST=2/h,3/d`: per visitor.
+- `LEXVI_MAX_BUSY=3`: requests running at once.
+
+**Refusals and resets:**
+- A refusal is HTTP 429 with `Retry-After`.
+- A request that never reached the model, such as an unreadable PDF, is not counted.
+- The counters reset when the process restarts.
+
+**Keep-warm:** a Free instance sleeps after 15 idle minutes and takes about a minute to wake.
+`.github/workflows/keep-warm.yml` on `main` pings `/health` every 10 minutes until the date set in that file.
+
 ## Results
 
 Role A's offline data audit passes: **30 documents, 689 articles, 3,586 provision records,
