@@ -1,0 +1,280 @@
+{
+  "nguon": "data/ (role A corpus, verbatim)",
+  "van_ban": {
+    "40/2021/TT-BTC": {
+      "so_hieu": "40/2021/TT-BTC",
+      "loai": "thông tư",
+      "tieu_de": "Hướng dẫn thuế giá trị gia tăng, thuế thu nhập cá nhân và quản lý thuế đối với hộ kinh doanh, cá nhân kinh doanh",
+      "ngay_ban_hanh": "2021-06-01",
+      "hieu_luc_tu": "2021-08-01",
+      "het_hieu_luc": "2026-03-05",
+      "nguon_url": "https://congbao.chinhphu.vn/van-ban/thong-tu-so-40-2021-tt-btc-33850.htm"
+    },
+    "48/2024/QH15": {
+      "so_hieu": "48/2024/QH15",
+      "loai": "luật",
+      "tieu_de": "Luật Thuế giá trị gia tăng",
+      "ngay_ban_hanh": "2024-11-26",
+      "hieu_luc_tu": "2025-07-01",
+      "het_hieu_luc": null,
+      "nguon_url": "https://vanban.chinhphu.vn/?pageid=27160&docid=212476"
+    },
+    "149/2025/QH15": {
+      "so_hieu": "149/2025/QH15",
+      "loai": "luật",
+      "tieu_de": "Luật sửa đổi, bổ sung một số điều của Luật Thuế giá trị gia tăng",
+      "ngay_ban_hanh": "2025-12-11",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null,
+      "nguon_url": "https://vanban.chinhphu.vn/?pageid=27160&docid=216588"
+    },
+    "109/2025/QH15": {
+      "so_hieu": "109/2025/QH15",
+      "loai": "luật",
+      "tieu_de": "Luật Thuế thu nhập cá nhân",
+      "ngay_ban_hanh": "2025-12-10",
+      "hieu_luc_tu": "2026-07-01",
+      "het_hieu_luc": null,
+      "nguon_url": "https://vanban.chinhphu.vn/?pageid=27160&docid=216495"
+    },
+    "09/2026/QH16": {
+      "so_hieu": "09/2026/QH16",
+      "loai": "luật",
+      "tieu_de": "Luật sửa đổi, bổ sung một số điều của Luật Thuế thu nhập cá nhân, Luật Thuế giá trị gia tăng, Luật Thuế thu nhập doanh nghiệp và Luật Thuế tiêu thụ đặc biệt",
+      "ngay_ban_hanh": "2026-04-24",
+      "hieu_luc_tu": "2026-04-24",
+      "het_hieu_luc": null,
+      "nguon_url": "https://vanban.chinhphu.vn/?pageid=27160&docid=218095"
+    },
+    "68/2026/NĐ-CP": {
+      "so_hieu": "68/2026/NĐ-CP",
+      "loai": "nghị định",
+      "tieu_de": "Quy định về chính sách thuế và quản lý thuế đối với hộ kinh doanh, cá nhân kinh doanh",
+      "ngay_ban_hanh": "2026-03-05",
+      "hieu_luc_tu": "2026-03-05",
+      "het_hieu_luc": null,
+      "nguon_url": "https://vanban.chinhphu.vn/?pageid=27160&docid=217111"
+    },
+    "141/2026/NĐ-CP": {
+      "so_hieu": "141/2026/NĐ-CP",
+      "loai": "nghị định",
+      "tieu_de": "Sửa đổi, bổ sung một số điều của Nghị định số 68/2026/NĐ-CP quy định về chính sách thuế đối với hộ kinh doanh, cá nhân kinh doanh và Nghị định số 320/2025/NĐ-CP quy định chi tiết một số điều và biện pháp để tổ chức, hướng dẫn thi hành Luật Thuế thu nhập doanh nghiệp",
+      "ngay_ban_hanh": "2026-04-29",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null,
+      "nguon_url": "https://vanban.chinhphu.vn/?pageid=27160&docid=217960"
+    },
+    "70/2025/NĐ-CP": {
+      "so_hieu": "70/2025/NĐ-CP",
+      "loai": "nghị định",
+      "tieu_de": "Sửa đổi, bổ sung một số điều của Nghị định số 123/2020/NĐ-CP ngày 19 tháng 10 năm 2020 của Chính phủ quy định về hóa đơn, chứng từ",
+      "ngay_ban_hanh": "2025-03-20",
+      "hieu_luc_tu": "2025-06-01",
+      "het_hieu_luc": "2026-07-01",
+      "nguon_url": "https://vanban.chinhphu.vn/?pageid=27160&docid=213179"
+    },
+    "18/2026/TT-BTC": {
+      "so_hieu": "18/2026/TT-BTC",
+      "loai": "thông tư",
+      "tieu_de": "Quy định về hồ sơ, thủ tục quản lý thuế đối với hộ kinh doanh, cá nhân kinh doanh",
+      "ngay_ban_hanh": "2026-03-05",
+      "hieu_luc_tu": "2026-03-05",
+      "het_hieu_luc": null,
+      "nguon_url": "https://vanban.chinhphu.vn/?pageid=27160&docid=217174"
+    }
+  },
+  "dieu_khoan": {
+    "40-2021-TT-BTC-D4-K2": {
+      "id": "40-2021-TT-BTC-D4-K2",
+      "so_hieu": "40/2021/TT-BTC",
+      "dieu": 4,
+      "khoan": 2,
+      "noi_dung": "2. Hộ kinh doanh, cá nhân kinh doanh có doanh thu từ hoạt động sản xuất, kinh doanh trong năm dương lịch từ 100 triệu đồng trở xuống thì thuộc trường hợp không phải nộp thuế GTGT và không phải nộp thuế TNCN theo quy định pháp luật về thuế GTGT và thuế TNCN. Hộ kinh doanh, cá nhân kinh doanh có trách nhiệm khai thuế chính xác, trung thực, đầy đủ và nộp hồ sơ thuế đúng hạn; chịu trách nhiệm trước pháp luật về tính chính xác, trung thực, đầy đủ của hồ sơ thuế theo quy định.",
+      "trang": 6,
+      "trang_nguon": 6,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2021/6/33850/36037-1-2021649-65040-2021-tt-btc.pdf#page=6",
+      "hieu_luc_tu": "2021-08-01",
+      "het_hieu_luc": "2026-03-05"
+    },
+    "48-2024-QH15-D5-K25": {
+      "id": "48-2024-QH15-D5-K25",
+      "so_hieu": "48/2024/QH15",
+      "dieu": 5,
+      "khoan": 25,
+      "noi_dung": "25. Hàng hóa, dịch vụ của hộ, cá nhân sản xuất, kinh doanh có mức doanh thu hằng năm từ 200 triệu đồng trở xuống; tài sản của tổ chức, cá nhân không kinh doanh, không phải là người nộp thuế giá trị gia tăng bán ra; hàng dự trữ quốc gia do cơ quan dự trữ quốc gia bán ra; các khoản thu phí, lệ phí theo quy định của pháp luật về phí và lệ phí.",
+      "trang": 5,
+      "trang_nguon": 5,
+      "nguon_pdf": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2025/01/luat48.pdf#page=5",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null
+    },
+    "149-2025-QH15-D1-K1": {
+      "id": "149-2025-QH15-D1-K1",
+      "so_hieu": "149/2025/QH15",
+      "dieu": 1,
+      "khoan": 1,
+      "noi_dung": "1. Sửa đổi, bổ sung một số khoản của Điều 5 như sau: a) Sửa đổi, bổ sung khoản 1 như sau: “1. Sản phẩm cây trồng, rừng trồng, chăn nuôi, thủy sản nuôi trồng, đánh bắt chưa chế biến thành các sản phẩm khác hoặc chỉ qua sơ chế thông thường của tổ chức, cá nhân tự sản xuất, đánh bắt bán ra và ở khâu nhập khẩu. Doanh nghiệp, hợp tác xã, liên hiệp hợp tác xã mua sản phẩm cây trồng, rừng trồng, chăn nuôi, thủy sản nuôi trồng, đánh bắt chưa chế biến thành các sản phẩm khác hoặc chỉ qua sơ chế thông thường bán cho doanh nghiệp, hợp tác xã, liên hiệp hợp tác xã khác thì không phải kê khai, tính nộp thuế giá trị gia tăng nhưng được khấu trừ thuế giá trị gia tăng đầu vào.”; b) Sửa đổi, bổ sung khoản 25 như sau: “25. Hàng hóa, dịch vụ của hộ, cá nhân sản xuất, kinh doanh có mức doanh thu năm từ 500 triệu đồng trở xuống; tài sản của tổ chức, cá nhân không kinh doanh, không phải là người nộp thuế giá trị gia tăng bán ra; hàng dự trữ quốc gia do cơ quan dự trữ quốc gia bán ra; các khoản thu phí, lệ phí theo quy định của pháp luật về phí và lệ phí.”.",
+      "trang": 1,
+      "trang_nguon": 1,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/1/26/149signed-1769416922782586908570.pdf#page=1",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null
+    },
+    "109-2025-QH15-D7-K1": {
+      "id": "109-2025-QH15-D7-K1",
+      "so_hieu": "109/2025/QH15",
+      "dieu": 7,
+      "khoan": 1,
+      "noi_dung": "1. Cá nhân cư trú có hoạt động sản xuất, kinh doanh có mức doanh thu năm từ 500 triệu đồng trở xuống không phải nộp thuế thu nhập cá nhân. Chính phủ trình Ủy ban Thường vụ Quốc hội điều chỉnh mức doanh thu không phải nộp thuế thu nhập cá nhân phù hợp với tình hình kinh tế - xã hội trong từng thời kỳ.",
+      "trang": 6,
+      "trang_nguon": 6,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/1/24/109signed-17692403594311667615452.pdf#page=6",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null
+    },
+    "09-2026-QH16-D1": {
+      "id": "09-2026-QH16-D1",
+      "so_hieu": "09/2026/QH16",
+      "dieu": 1,
+      "khoan": null,
+      "noi_dung": "Điều 1. Sửa đổi, bổ sung khoản 1 Điều 7 của Luật Thuế thu nhập cá nhân “1. Cá nhân cư trú có hoạt động sản xuất, kinh doanh có doanh thu năm từ mức quy định của Chính phủ trở xuống không phải nộp thuế thu nhập cá nhân. Căn cứ các chỉ số kinh tế vĩ mô, khả năng cân đối ngân sách, Chính phủ quy định mức doanh thu năm phù hợp với bối cảnh kinh tế - xã hội trong từng thời kỳ.”.",
+      "trang": 1,
+      "trang_nguon": 1,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/5/27/469536-1779329464_v1_1779843299_signed.pdf#page=1",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null
+    },
+    "09-2026-QH16-D2": {
+      "id": "09-2026-QH16-D2",
+      "so_hieu": "09/2026/QH16",
+      "dieu": 2,
+      "khoan": null,
+      "noi_dung": "Điều 2. Sửa đổi, bổ sung khoản 25 Điều 5 của Luật Thuế giá trị gia tăng “25. Hàng hóa, dịch vụ của hộ, cá nhân sản xuất, kinh doanh có doanh thu năm từ mức quy định của Chính phủ trở xuống; tài sản của tổ chức, cá nhân không kinh doanh, không phải là người nộp thuế giá trị gia tăng bán ra; hàng dự trữ quốc gia do cơ quan dự trữ quốc gia bán ra; các khoản thu phí, lệ phí theo quy định của pháp luật về phí và lệ phí. Căn cứ các chỉ số kinh tế vĩ mô, khả năng cân đối ngân sách, Chính phủ quy định mức doanh thu năm tại khoản này phù hợp với bối cảnh kinh tế - xã hội trong từng thời kỳ.”.",
+      "trang": 1,
+      "trang_nguon": 1,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/5/27/469536-1779329464_v1_1779843299_signed.pdf#page=1",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null
+    },
+    "68-2026-ND-CP-D3-K1": {
+      "id": "68-2026-ND-CP-D3-K1",
+      "so_hieu": "68/2026/NĐ-CP",
+      "dieu": 3,
+      "khoan": 1,
+      "noi_dung": "1. Hộ kinh doanh, cá nhân kinh doanh có hoạt động sản xuất, kinh doanh có mức doanh thu năm từ 500 triệu đồng trở xuống thuộc đối tượng không chịu thuế giá trị gia tăng.",
+      "trang": 2,
+      "trang_nguon": 2,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/3/18/469047-1773796836_v1_1773803477_signed.pdf#page=2",
+      "hieu_luc_tu": "2026-03-05",
+      "het_hieu_luc": null
+    },
+    "68-2026-ND-CP-D4-K1": {
+      "id": "68-2026-ND-CP-D4-K1",
+      "so_hieu": "68/2026/NĐ-CP",
+      "dieu": 4,
+      "khoan": 1,
+      "noi_dung": "1. Cá nhân cư trú có hoạt động sản xuất, kinh doanh, bao gồm cả cá nhân đăng ký thành lập hộ kinh doanh hoặc người được các thành viên hộ gia đình ủy quyền làm người đại diện hộ kinh doanh (sau đây gọi là cá nhân kinh doanh) có mức doanh thu năm từ 500 triệu đồng trở xuống không phải nộp thuế thu nhập cá nhân.",
+      "trang": 2,
+      "trang_nguon": 2,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/3/18/469047-1773796836_v1_1773803477_signed.pdf#page=2",
+      "hieu_luc_tu": "2026-03-05",
+      "het_hieu_luc": null
+    },
+    "68-2026-ND-CP-D8-K1": {
+      "id": "68-2026-ND-CP-D8-K1",
+      "so_hieu": "68/2026/NĐ-CP",
+      "dieu": 8,
+      "khoan": 1,
+      "noi_dung": "1. Khai thuế, tính thuế giá trị gia tăng, thuế thu nhập cá nhân a) Trường hợp hộ kinh doanh, cá nhân kinh doanh tự xác định có mức doanh thu năm từ hoạt động sản xuất, kinh doanh hàng hóa, dịch vụ từ 500 triệu đồng trở xuống thì hộ kinh doanh, cá nhân kinh doanh thông báo doanh thu thực tế phát sinh trong năm với cơ quan thuế chậm nhất là ngày 31 tháng 01 của năm dương lịch tiếp theo. Trường hợp hộ kinh doanh, cá nhân kinh doanh phát sinh doanh thu thực tế trên 500 triệu đồng trong năm thì thực hiện khai thuế, nộp thuế kể từ quý phát sinh doanh thu trên 500 triệu đồng. Số thuế giá trị gia tăng, thuế thu nhập cá nhân phải nộp xác định theo quy định tại Điều 3, Điều 4 Nghị định này; b) Trường hợp hộ kinh doanh, cá nhân kinh doanh tự xác định có mức doanh thu năm từ hoạt động sản xuất, kinh doanh hàng hóa, dịch vụ trên 500 triệu đồng bao gồm cả doanh thu đã được tổ chức, cá nhân khấu trừ, khai thay, nộp thay thì tính thuế giá trị gia tăng, thuế thu nhập cá nhân theo quy định tại Điều 3, Điều 4 Nghị định này. Việc kê khai, nộp thuế thực hiện theo quy định tại Điều 10 Nghị định này. Trường hợp hộ kinh doanh, cá nhân kinh doanh sử dụng hóa đơn điện tử có mã của cơ quan thuế, hoá đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế, Hệ thống thông tin quản lý thuế tự động tạo lập tờ khai thuế để hỗ trợ hộ kinh doanh, cá nhân kinh doanh trong việc khai thuế, tính thuế giá trị gia tăng, thuế thu nhập cá nhân trên cơ sở dữ liệu hóa đơn điện tử, cơ sở dữ liệu quản lý thuế và các nguồn cơ sở dữ liệu khác mà cơ quan thuế có được từ cơ quan nhà nước khác, tổ chức, cá nhân cung cấp. Việc hỗ trợ của cơ quan thuế không thay thế trách nhiệm khai thuế và xác định số thuế phải nộp của hộ kinh doanh, cá nhân kinh doanh. Hộ kinh doanh, cá nhân kinh doanh chịu trách nhiệm trước pháp luật về tính trung thực, chính xác của hồ sơ khai thuế.",
+      "trang": 6,
+      "trang_nguon": 6,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/3/18/469047-1773796836_v1_1773803477_signed.pdf#page=6",
+      "hieu_luc_tu": "2026-03-05",
+      "het_hieu_luc": null
+    },
+    "68-2026-ND-CP-D8-K5": {
+      "id": "68-2026-ND-CP-D8-K5",
+      "so_hieu": "68/2026/NĐ-CP",
+      "dieu": 8,
+      "khoan": 5,
+      "noi_dung": "5. Sử dụng hóa đơn điện tử a) Hộ kinh doanh, cá nhân kinh doanh có doanh thu tính thuế giá trị gia tăng hằng năm từ 01 tỷ đồng trở lên thì phải áp dụng hóa đơn điện tử có mã của cơ quan thuế, hóa đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế theo quy định tại khoản 8 Điều 1 Nghị định số 70/2025/NĐ-CP ngày 20 tháng 3 năm 2025 của Chính phủ sửa đổi, bổ sung một số điều của Nghị định số 123/2020/NĐ-CP ngày 19 tháng 10 năm 2020 của Chính phủ quy định về hóa đơn, chứng từ. Trường hợp hộ kinh doanh, cá nhân kinh doanh có nhiều địa điểm kinh doanh thì sử dụng mã số thuế của hộ kinh doanh, cá nhân kinh doanh cho tất cả các cửa hàng và phải ghi rõ địa chỉ của từng địa điểm kinh doanh trên hóa đơn; b) Hộ kinh doanh, cá nhân kinh doanh có doanh thu tính thuế giá trị gia tăng năm trên 500 triệu đồng và dưới 01 tỷ đồng không bắt buộc sử dụng hóa đơn điện tử có mã của cơ quan thuế hoặc hóa đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế. Trường hợp đáp ứng điều kiện và có nhu cầu sử dụng hóa đơn điện tử thì đăng ký sử dụng hóa đơn điện tử có mã của cơ quan thuế hoặc hóa đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế. Trường hợp hộ kinh doanh, cá nhân kinh doanh không đăng ký sử dụng hóa đơn điện tử, có nhu cầu sử dụng hóa đơn điện tử thì thực hiện khai và nộp thuế trước khi được cơ quan thuế cấp hóa đơn điện tử có mã của cơ quan thuế theo từng lần phát sinh giao dịch bán hàng hóa, cung cấp dịch vụ; c) Hộ kinh doanh, cá nhân kinh doanh mới ra kinh doanh tại Điều 9 Nghị định này hoặc hộ kinh doanh, cá nhân kinh doanh có doanh thu tính thuế giá trị gia tăng năm trước chưa đến 01 tỷ đồng nhưng trong năm tính thuế có doanh thu tính thuế giá trị gia tăng từ 01 tỷ đồng trở lên thì phải áp dụng hóa đơn điện tử có mã của cơ quan thuế hoặc hóa đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế. Hộ kinh doanh, cá nhân kinh doanh đăng ký sử dụng hóa đơn điện tử trong thời gian 30 ngày kể từ ngày cuối cùng của kỳ tính thuế có doanh thu tính thuế giá trị gia tăng lũy kế từ 01 tỷ đồng trở lên.",
+      "trang": 9,
+      "trang_nguon": 9,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/3/18/469047-1773796836_v1_1773803477_signed.pdf#page=9",
+      "hieu_luc_tu": "2026-03-05",
+      "het_hieu_luc": null
+    },
+    "141-2026-ND-CP-D1-K1": {
+      "id": "141-2026-ND-CP-D1-K1",
+      "so_hieu": "141/2026/NĐ-CP",
+      "dieu": 1,
+      "khoan": 1,
+      "noi_dung": "1. Sửa đổi cụm từ “500 triệu đồng” thành “01 tỷ đồng” tại Điều 3, Điều 4, khoản 1 Điều 8, Điều 9, Điều 10, khoản 3 Điều 11, khoản 1 và khoản 2 Điều 12, khoản 4 Điều 17, khoản 3 Điều 18 Nghị định số 68/2026/NĐ-CP.",
+      "trang": 1,
+      "trang_nguon": 1,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/5/14/469455-1778231931_v1_1778720623_signed.pdf#page=1",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null
+    },
+    "141-2026-ND-CP-D1-K2": {
+      "id": "141-2026-ND-CP-D1-K2",
+      "so_hieu": "141/2026/NĐ-CP",
+      "dieu": 1,
+      "khoan": 2,
+      "noi_dung": "2. Sửa đổi, bổ sung khoản 5 Điều 8 Nghị định số 68/2026/NĐ-CP như sau: “5. Sử dụng hóa đơn điện tử a) Hộ kinh doanh, cá nhân kinh doanh có doanh thu năm trên 01 tỷ đồng thì phải áp dụng hóa đơn điện tử có mã của cơ quan thuế, hóa đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế. Trường hợp hộ kinh doanh, cá nhân kinh doanh có nhiều địa điểm kinh doanh thì sử dụng mã số thuế của hộ kinh doanh, cá nhân kinh doanh cho tất cả các cửa hàng và phải ghi rõ mã địa điểm kinh doanh trên hóa đơn; b) Trường hợp hộ kinh doanh, cá nhân kinh doanh có doanh thu năm từ 01 tỷ đồng trở xuống đáp ứng điều kiện và có nhu cầu sử dụng hóa đơn điện tử thì đăng ký sử dụng hóa đơn điện tử có mã của cơ quan thuế hoặc hóa đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế; c) Hộ kinh doanh, cá nhân kinh doanh mới ra kinh doanh tại Điều 9 Nghị định này hoặc hộ kinh doanh, cá nhân kinh doanh có doanh thu năm trước chưa trên 01 tỷ đồng (trừ trường hợp đã đăng ký sử dụng hóa đơn điện tử theo điểm b khoản này) nhưng trong năm tính thuế có doanh thu trên 01 tỷ đồng trở lên thì phải áp dụng hóa đơn điện tử có mã của cơ quan thuế, hóa đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế. Hộ kinh doanh, cá nhân kinh doanh đăng ký sử dụng hóa đơn điện tử trong thời gian 30 ngày kể từ ngày cuối cùng của kỳ tính thuế có doanh thu lũy kế trên 01 tỷ đồng.\".",
+      "trang": 2,
+      "trang_nguon": 2,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/5/14/469455-1778231931_v1_1778720623_signed.pdf#page=2",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null
+    },
+    "141-2026-ND-CP-D3": {
+      "id": "141-2026-ND-CP-D3",
+      "so_hieu": "141/2026/NĐ-CP",
+      "dieu": 3,
+      "khoan": null,
+      "noi_dung": "Điều 3. Hiệu lực thi hành Nghị định này có hiệu lực thi hành từ ngày 01 tháng 01 năm 2026.",
+      "trang": 3,
+      "trang_nguon": 3,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/5/14/469455-1778231931_v1_1778720623_signed.pdf#page=3",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null
+    },
+    "141-2026-ND-CP-D4-K1": {
+      "id": "141-2026-ND-CP-D4-K1",
+      "so_hieu": "141/2026/NĐ-CP",
+      "dieu": 4,
+      "khoan": 1,
+      "noi_dung": "1. Trường hợp hộ kinh doanh, cá nhân kinh doanh tự xác định mức doanh thu năm từ hoạt động sản xuất, kinh doanh hàng hóa, dịch vụ từ 01 tỷ đồng trở xuống mà đã kê khai nộp thuế thu nhập cá nhân, thuế giá trị gia tăng theo quy định tại Nghị định số 68/2026/NĐ-CP thì được xử lý tiền thuế đã nộp theo quy định tại Điều 12 Nghị định số 68/2026/NĐ-CP.",
+      "trang": 3,
+      "trang_nguon": 3,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/5/14/469455-1778231931_v1_1778720623_signed.pdf#page=3",
+      "hieu_luc_tu": "2026-01-01",
+      "het_hieu_luc": null
+    },
+    "70-2025-ND-CP-D1-K8": {
+      "id": "70-2025-ND-CP-D1-K8",
+      "so_hieu": "70/2025/NĐ-CP",
+      "dieu": 1,
+      "khoan": 8,
+      "noi_dung": "8. Sửa đổi tên Điều 11 và sửa đổi, bổ sung Điều 11 như sau: “Điều 11. Hóa đơn điện tử khởi tạo từ máy tính tiền 1. Hộ kinh doanh, cá nhân kinh doanh theo quy định tại khoản 1 Điều 51 có mức doanh thu hằng năm từ 01 tỷ đồng trở lên, khoản 2 Điều 90, khoản 3 Điều 91 Luật Quản lý thuế số 38/2019/QH14 và doanh nghiệp có hoạt động bán hàng hóa, cung cấp dịch vụ, trong đó có bán hàng hóa, cung cấp dịch vụ trực tiếp đến người tiêu dùng (trung tâm thương mại; siêu thị; bán lẻ (trừ ô tô, mô tô, xe máy và xe có động cơ khác); ăn uống; nhà hàng; khách sạn; dịch vụ vận tải hành khách, dịch vụ hỗ trợ trực tiếp cho vận tải đường bộ, dịch vụ nghệ thuật, vui chơi, giải trí, hoạt động chiếu phim, dịch vụ phục vụ cá nhân khác theo quy định về Hệ thống ngành kinh tế Việt Nam) sử dụng hóa đơn điện tử khởi tạo từ máy tính tiền kết nối chuyển dữ liệu điện tử với cơ quan thuế. 2. Hóa đơn điện tử khởi tạo từ máy tính tiền kết nối chuyển dữ liệu điện tử với cơ quan thuế đảm bảo nguyên tắc sau: a) Nhận biết được hóa đơn in từ máy tính tiền kết nối chuyển dữ liệu điện tử với cơ quan thuế; b) Không bắt buộc có chữ ký số; c) Khoản chi mua hàng hóa, dịch vụ sử dụng hóa đơn (hoặc sao chụp hóa đơn hoặc tra thông tin từ Cổng thông tin điện tử của Tổng cục Thuế về hóa đơn) được khởi tạo từ máy tính tiền được xác định là khoản chi có đủ hóa đơn, chứng từ hợp pháp khi xác định nghĩa vụ thuế. 3. Hóa đơn điện tử khởi tạo từ máy tính tiền có các nội dung sau đây: a) Tên, địa chỉ, mã số thuế người bán; b) Tên, địa chỉ, mã số thuế/số định danh cá nhân/số điện thoại của người mua theo quy định (nếu người mua yêu cầu); c) Tên hàng hóa, dịch vụ, đơn giá, số lượng, giá thanh toán. Trường hợp tổ chức, doanh nghiệp nộp thuế theo phương pháp khấu trừ phải ghi rõ nội dung giá bán chưa thuế giá trị gia tăng, thuế suất thuế giá trị gia tăng, tiền thuế giá trị gia tăng, tổng tiền thanh toán có thuế giá trị gia tăng; d) Thời điểm lập hóa đơn; đ) Mã của cơ quan thuế hoặc dữ liệu điện tử để người mua có thể truy xuất, kê khai thông tin hóa đơn điện tử khởi tạo từ máy tính tiền. Người bán gửi hóa đơn điện tử cho người mua bằng hình thức điện tử (tin nhắn, thư điện tử và các hình thức khác) hoặc cung cấp đường dẫn hoặc mã QR để người mua tra cứu, tải hóa đơn điện tử.”",
+      "trang": 12,
+      "trang_nguon": 12,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/3/44623/55799-1-2025613-61470-2025-nd-cp.pdf#page=12",
+      "hieu_luc_tu": "2025-06-01",
+      "het_hieu_luc": "2026-07-01"
+    },
+    "18-2026-TT-BTC-D9-K2": {
+      "id": "18-2026-TT-BTC-D9-K2",
+      "so_hieu": "18/2026/TT-BTC",
+      "dieu": 9,
+      "khoan": 2,
+      "noi_dung": "2. Thông tư này thay thế Thông tư số 40/2021/TT-BTC ngày 01 tháng 6 năm 2021 của Bộ trưởng Bộ Tài chính hướng dẫn thuế giá trị gia tăng, thuế thu nhập cá nhân và quản lý thuế đối với hộ kinh doanh, cá nhân kinh doanh; Thông tư số 100/2021/TT-BTC ngày 15 tháng 11 năm 2021 của Bộ trưởng Bộ Tài chính sửa đổi, bổ sung một số điều của Thông tư số 40/2021/TT-BTC ngày 01/6/2021 hướng dẫn thuế giá trị gia tăng, thuế thu nhập cá nhân và quản lý thuế đối với hộ kinh doanh, cá nhân kinh doanh.",
+      "trang": 5,
+      "trang_nguon": 5,
+      "nguon_pdf": "https://congbaocdn.chinhphu.vn/180507251028987904/2026/3/24/469080-1774341054_v1_1774343681_signed.pdf#page=5",
+      "hieu_luc_tu": "2026-03-05",
+      "het_hieu_luc": null
+    }
+  }
+}

@@ -86,11 +86,11 @@ export const useT = () => useContext(LocaleContext).t;
 /* ── Business profile (ho_so), shared by the Ask and Impact screens ───────────────────────────
  * In memory only: survives client-side navigation, resets on reload (keeps film takes identical).
  */
-// MOCK — the persona's profile (CLAUDE.md §3). [ILLUSTRATIVE] revenue figure.
+// The persona's profile: role A's demo profile (demo/role_a/expected.json — café, 700 million, HCMC).
 export const DEFAULT_PROFILE: HoSo = {
   loai_hinh: "ho_kinh_doanh",
   nganh: "Ăn uống (quán cà phê)",
-  doanh_thu_nam: 800_000_000,
+  doanh_thu_nam: 700_000_000,
   dia_ban: "TP. Hồ Chí Minh",
 };
 

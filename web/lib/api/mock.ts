@@ -1,9 +1,11 @@
-// MOCK — typed stand-in for role B's `/ask` and the proposed `GET /dieu-khoan/{id}`.
+// MOCK — prepared example responses for role B's `/ask` and `/ingest`, used by the demo film.
 //
-// [ILLUSTRATIVE] Every document number, date, article number, quote, threshold and deadline below
-// comes from secondary sources (planning/research/01-tax-law-facts.md) and has NOT been checked by
-// role A against the original text. Article texts are placeholders written for layout, not quotes.
-// Replace with A's verified corpus before recording the demo (constraints.md kill criteria).
+// Built from role A's corpus: every article text, page, PDF link and document date comes from
+// `mock-corpus.json`, which `scripts/build-mock-corpus.mjs` extracts verbatim from ../data. Quotes
+// are cut from those texts by `quoteFrom`, so they are always verbatim. The answers, checklists and
+// verification attempts are written for the demo (paraphrase, not quotes) and are NOT live system
+// output — the UI labels them as prepared examples (mockBadge / mockFlag).
+// The ingest scenario follows role A's `demo/role_a/expected.json` (Decree 141/2026 replay).
 
 import { compareIso, formatDate, formatVndWords } from "../format";
 import type {
@@ -16,77 +18,49 @@ import type {
   NutChuoi,
   VanBan,
 } from "./contract";
+import corpus from "./mock-corpus.json";
 
-const SRC = "https://vbpl.vn/"; // [ILLUSTRATIVE] replace with each document's official URL from A
+type CorpusDoc = (typeof corpus.van_ban)[keyof typeof corpus.van_ban];
+type CorpusProv = {
+  id: string;
+  so_hieu: string;
+  dieu: number;
+  khoan: number | null;
+  noi_dung: string;
+  trang: number;
+  trang_nguon?: number;
+  nguon_pdf?: string;
+  hieu_luc_tu: string;
+  het_hieu_luc: string | null;
+};
 
-// ── Documents ────────────────────────────────────────────────────────────────────────────────
+const DOCS = corpus.van_ban as Record<string, CorpusDoc>;
+const PROVS = corpus.dieu_khoan as Record<string, CorpusProv>;
+
+function doc(soHieu: string): VanBan {
+  const d = DOCS[soHieu];
+  if (!d) throw new Error(`mock document missing: ${soHieu}`);
+  return { ...d, loai: d.loai as VanBan["loai"], het_hieu_luc: d.het_hieu_luc ?? null };
+}
+function prov(id: string): CorpusProv {
+  const p = PROVS[id];
+  if (!p) throw new Error(`mock provision missing: ${id}`);
+  return p;
+}
+
 const VB = {
-  tt40: {
-    so_hieu: "40/2021/TT-BTC",
-    loai: "thông tư",
-    tieu_de: "Hướng dẫn thuế GTGT, thuế TNCN và quản lý thuế đối với hộ, cá nhân kinh doanh",
-    ngay_ban_hanh: "2021-06-01",
-    hieu_luc_tu: "2021-08-01",
-    // LOW confidence in research: "reportedly ceased to be in force on 05/3/2026" — confirm with A.
-    het_hieu_luc: "2026-03-05",
-    nguon_url: SRC,
-  },
-  l48: {
-    so_hieu: "48/2024/QH15",
-    loai: "luật",
-    tieu_de: "Luật Thuế giá trị gia tăng",
-    ngay_ban_hanh: "2024-11-26",
-    hieu_luc_tu: "2025-07-01", // the law; its HKD threshold applies from 01/01/2026 (see chain)
-    het_hieu_luc: null,
-    nguon_url: SRC,
-  },
-  l149: {
-    so_hieu: "149/2025/QH15",
-    loai: "luật",
-    tieu_de: "Luật sửa đổi, bổ sung một số điều của Luật Thuế giá trị gia tăng",
-    ngay_ban_hanh: "2025-12-11",
-    hieu_luc_tu: "2026-01-01",
-    het_hieu_luc: null,
-    nguon_url: SRC,
-  },
-  l09: {
-    so_hieu: "09/2026/QH16",
-    loai: "luật",
-    tieu_de: "Luật sửa đổi, bổ sung một số điều của các luật về thuế",
-    ngay_ban_hanh: "2026-04-24",
-    hieu_luc_tu: "2026-04-24", // in force on passage; Arts. 1–3 apply from 01/01/2026 (see chain)
-    het_hieu_luc: null,
-    nguon_url: SRC,
-  },
-  nd68: {
-    so_hieu: "68/2026/NĐ-CP",
-    loai: "nghị định",
-    tieu_de: "Quy định chính sách thuế và quản lý thuế đối với hộ kinh doanh, cá nhân kinh doanh",
-    ngay_ban_hanh: "2026-03-05",
-    hieu_luc_tu: "2026-03-05",
-    het_hieu_luc: null,
-    nguon_url: SRC,
-  },
-  nd70: {
-    so_hieu: "70/2025/NĐ-CP",
-    loai: "nghị định",
-    tieu_de: "Sửa đổi, bổ sung Nghị định số 123/2020/NĐ-CP quy định về hoá đơn, chứng từ",
-    ngay_ban_hanh: "2025-03-20",
-    hieu_luc_tu: "2025-06-01",
-    het_hieu_luc: null,
-    nguon_url: SRC,
-  },
-  nd141: {
-    so_hieu: "141/2026/NĐ-CP",
-    loai: "nghị định",
-    tieu_de: "Sửa đổi, bổ sung Nghị định số 68/2026/NĐ-CP và Nghị định số 320/2025/NĐ-CP",
-    ngay_ban_hanh: "2026-04-29",
-    hieu_luc_tu: "2026-01-01",
-    het_hieu_luc: null,
-    nguon_url: SRC,
-  },
-} satisfies Record<string, VanBan>;
+  tt40: doc("40/2021/TT-BTC"),
+  tt18: doc("18/2026/TT-BTC"),
+  l48: doc("48/2024/QH15"),
+  l149: doc("149/2025/QH15"),
+  l109: doc("109/2025/QH15"),
+  l09: doc("09/2026/QH16"),
+  nd68: doc("68/2026/NĐ-CP"),
+  nd70: doc("70/2025/NĐ-CP"),
+  nd141: doc("141/2026/NĐ-CP"),
+};
 
+/** A chain node. `ap_dung_tu` = the provision's own start date when it differs from the document's. */
 function node(
   vb: VanBan,
   noi_dung_ngan: string,
@@ -98,117 +72,111 @@ function node(
     van_ban: { so_hieu, loai, ngay_ban_hanh, hieu_luc_tu, het_hieu_luc },
     noi_dung_ngan,
     quan_he,
-    ...(ap_dung_tu ? { ap_dung_tu } : {}),
+    ...(ap_dung_tu && ap_dung_tu !== hieu_luc_tu ? { ap_dung_tu } : {}),
   };
 }
 
-/**
- * The exemption-threshold chain — LexVi's demo story (CLAUDE.md §6). [ILLUSTRATIVE]
- * Simplified to the VAT line; the PIT line (Law 109/2025, 500m) runs in parallel and is also
- * amended by Law 09/2026. Relation types (e.g. circular → law "thay_the") need A's confirmation.
- */
-const THRESHOLD_CHAIN: NutChuoi[] = [
-  node(VB.tt40, "≤ 100 triệu đồng/năm", null),
-  node(VB.l48, "≤ 200 triệu đồng/năm", "thay_the", "2026-01-01"),
+// ── Chains (from the corpus edges in data/quan_he.json) ─────────────────────────────────────
+// 40/2021 Art. 4(2) ← replaced by 18/2026 Art. 9(2) from 05/03/2026.
+const CHAIN_TT40: NutChuoi[] = [
+  node(VB.tt40, "≤ 100 triệu đồng/năm không phải nộp GTGT, TNCN", null),
+  node(VB.tt18, "Thay thế Thông tư 40/2021/TT-BTC", "thay_the"),
+];
+// VAT Law 48/2024 Art. 5(25) (from 01/01/2026) ← 149/2025 Art. 1(1) ← 09/2026 Art. 2 (from 01/01/2026).
+const CHAIN_VAT: NutChuoi[] = [
+  node(
+    VB.l48,
+    "≤ 200 triệu đồng/năm không chịu GTGT",
+    null,
+    prov("48-2024-QH15-D5-K25").hieu_luc_tu,
+  ),
   node(VB.l149, "≤ 500 triệu đồng/năm", "sua_doi"),
-  node(VB.l09, "Mức do Chính phủ quy định", "sua_doi", "2026-01-01"),
-  node(VB.nd141, "≤ 1 tỷ đồng/năm", "huong_dan"),
+  node(
+    VB.l09,
+    "Mức doanh thu do Chính phủ quy định",
+    "sua_doi",
+    prov("09-2026-QH16-D2").hieu_luc_tu,
+  ),
+];
+// PIT Law 109/2025 Art. 7(1) (from 01/01/2026) ← 09/2026 Art. 1 (from 01/01/2026).
+const CHAIN_PIT: NutChuoi[] = [
+  node(
+    VB.l109,
+    "≤ 500 triệu đồng/năm không phải nộp TNCN",
+    null,
+    prov("109-2025-QH15-D7-K1").hieu_luc_tu,
+  ),
+  node(
+    VB.l09,
+    "Mức doanh thu do Chính phủ quy định",
+    "sua_doi",
+    prov("09-2026-QH16-D1").hieu_luc_tu,
+  ),
+];
+// Decree 68/2026 Arts. 3, 4, 8(1) ← Decree 141/2026 Art. 1(1): "500 triệu đồng" → "01 tỷ đồng".
+const CHAIN_ND68: NutChuoi[] = [
+  node(VB.nd68, "Mức 500 triệu đồng/năm", null),
+  node(VB.nd141, "Thay cụm từ thành 01 tỷ đồng", "sua_doi"),
+];
+// Decree 68/2026 Art. 8(5) ← Decree 141/2026 Art. 1(2) (e-invoices).
+const CHAIN_EINVOICE: NutChuoi[] = [
+  node(VB.nd68, "Bắt buộc HĐĐT từ 01 tỷ đồng/năm trở lên", null),
+  node(VB.nd141, "Bắt buộc HĐĐT khi doanh thu trên 01 tỷ đồng/năm", "sua_doi"),
+];
+// Decree 70/2025 Art. 1(8) (ends 01/07/2026, replaced by Decree 254/2026).
+const CHAIN_ND70: NutChuoi[] = [
+  node(VB.nd70, "HĐĐT từ máy tính tiền khi doanh thu từ 01 tỷ đồng/năm trở lên", null),
 ];
 
-const EINVOICE_CHAIN: NutChuoi[] = [
-  node(VB.nd68, "Ngưỡng bắt buộc hoá đơn điện tử (bản gốc)", null),
-  node(VB.nd141, "Bắt buộc khi doanh thu trên 1 tỷ đồng/năm", "sua_doi"),
-];
-
-const PLACEHOLDER = "[MINH HOẠ — chưa đối chiếu văn bản gốc]";
-
-// ── Articles (id → detail) ───────────────────────────────────────────────────────────────────
-const DETAILS: Record<string, ChiTietDieuKhoan> = {
-  "tt40-2021-d4-k1": {
-    van_ban: VB.tt40,
-    chuoi: THRESHOLD_CHAIN,
-    dieu_khoan: {
-      id: "tt40-2021-d4-k1",
-      so_hieu: VB.tt40.so_hieu,
-      dieu: 4,
-      khoan: 1,
-      trang: 3,
-      noi_dung: `${PLACEHOLDER} Hộ kinh doanh, cá nhân kinh doanh có doanh thu từ hoạt động sản xuất, kinh doanh trong năm dương lịch từ 100 triệu đồng trở xuống thì không phải nộp thuế giá trị gia tăng và không phải nộp thuế thu nhập cá nhân.`,
-    },
-  },
-  "l09-2026-d2": {
-    van_ban: VB.l09,
-    chuoi: THRESHOLD_CHAIN,
-    dieu_khoan: {
-      id: "l09-2026-d2",
-      so_hieu: VB.l09.so_hieu,
-      dieu: 2,
-      khoan: null,
-      trang: 2,
-      noi_dung: `${PLACEHOLDER} Sửa đổi khoản 25 Điều 5 Luật Thuế giá trị gia tăng và khoản 1 Điều 7 Luật Thuế thu nhập cá nhân: hàng hoá, dịch vụ của hộ, cá nhân kinh doanh có doanh thu năm từ mức quy định của Chính phủ trở xuống thuộc đối tượng không chịu thuế.`,
-    },
-  },
-  "nd141-2026-d1-k1": {
-    van_ban: VB.nd141,
-    chuoi: THRESHOLD_CHAIN,
-    dieu_khoan: {
-      id: "nd141-2026-d1-k1",
-      so_hieu: VB.nd141.so_hieu,
-      dieu: 1,
-      khoan: 1,
-      trang: 1,
-      noi_dung: `${PLACEHOLDER} Thay cụm từ "500 triệu đồng" bằng cụm từ "01 tỷ đồng" tại các điều của Nghị định số 68/2026/NĐ-CP. Hộ kinh doanh có doanh thu năm từ 01 tỷ đồng trở xuống không phải nộp thuế giá trị gia tăng và thuế thu nhập cá nhân.`,
-    },
-  },
-  "nd68-2026-d13-k3": {
-    van_ban: VB.nd68,
-    chuoi: [node(VB.nd68, "Tự kê khai doanh thu", null)],
-    dieu_khoan: {
-      id: "nd68-2026-d13-k3",
-      so_hieu: VB.nd68.so_hieu,
-      dieu: 13,
-      khoan: 3,
-      trang: 9,
-      noi_dung: `${PLACEHOLDER} Hộ kinh doanh, cá nhân kinh doanh tự kê khai đầy đủ, chính xác doanh thu và chịu trách nhiệm về tính trung thực của thông tin đã kê khai.`,
-    },
-  },
-  "nd70-2025-d1-k11": {
-    van_ban: VB.nd70,
-    chuoi: [node(VB.nd70, "Bắt buộc HĐĐT máy tính tiền từ 1 tỷ đồng/năm trở lên", null)],
-    dieu_khoan: {
-      id: "nd70-2025-d1-k11",
-      so_hieu: VB.nd70.so_hieu,
-      dieu: 1,
-      khoan: 11,
-      trang: 4,
-      noi_dung: `${PLACEHOLDER} Hộ, cá nhân kinh doanh có mức doanh thu hàng năm từ 01 tỷ đồng trở lên sử dụng hoá đơn điện tử khởi tạo từ máy tính tiền có kết nối chuyển dữ liệu điện tử với cơ quan thuế.`,
-    },
-  },
-  "nd68-2026-d8-k5": {
-    van_ban: VB.nd68,
-    chuoi: EINVOICE_CHAIN,
-    dieu_khoan: {
-      id: "nd68-2026-d8-k5",
-      so_hieu: VB.nd68.so_hieu,
-      dieu: 8,
-      khoan: 5,
-      trang: 6,
-      noi_dung: `${PLACEHOLDER} Hộ kinh doanh có doanh thu năm trên mức quy định phải sử dụng hoá đơn điện tử có mã của cơ quan thuế hoặc hoá đơn điện tử khởi tạo từ máy tính tiền có kết nối dữ liệu với cơ quan thuế.`,
-    },
-  },
+const CHAINS: Record<string, NutChuoi[]> = {
+  "40-2021-TT-BTC-D4-K2": CHAIN_TT40,
+  "09-2026-QH16-D2": CHAIN_VAT,
+  "09-2026-QH16-D1": CHAIN_PIT,
+  "68-2026-ND-CP-D3-K1": CHAIN_ND68,
+  "68-2026-ND-CP-D4-K1": CHAIN_ND68,
+  "68-2026-ND-CP-D8-K1": CHAIN_ND68,
+  "141-2026-ND-CP-D1-K1": CHAIN_ND68,
+  "141-2026-ND-CP-D3": CHAIN_ND68,
+  "141-2026-ND-CP-D4-K1": CHAIN_ND68,
+  "68-2026-ND-CP-D8-K5": CHAIN_EINVOICE,
+  "141-2026-ND-CP-D1-K2": CHAIN_EINVOICE,
+  "70-2025-ND-CP-D1-K8": CHAIN_ND70,
 };
 
-/** Pull a sentence out of the article text so the quote always appears verbatim in the mock. */
-function quoteFrom(id: string, start: string): string {
-  const text = DETAILS[id].dieu_khoan.noi_dung;
+function detail(id: string): ChiTietDieuKhoan {
+  const p = prov(id);
+  return {
+    van_ban: doc(p.so_hieu),
+    chuoi: CHAINS[id] ?? [node(doc(p.so_hieu), "", null)],
+    dieu_khoan: {
+      id: p.id,
+      so_hieu: p.so_hieu,
+      dieu: p.dieu,
+      khoan: p.khoan,
+      noi_dung: p.noi_dung,
+      trang: p.trang,
+      ...(p.trang_nguon ? { trang_nguon: p.trang_nguon } : {}),
+      ...(p.nguon_pdf ? { nguon_pdf: p.nguon_pdf } : {}),
+    },
+  };
+}
+
+/** Cut a verbatim sentence out of the article text: from `start` to the next "." (or `until`). */
+function quoteFrom(id: string, start: string, until?: string): string {
+  const text = prov(id).noi_dung;
   const from = text.indexOf(start);
-  if (from < 0) throw new Error(`mock quote not found in ${id}`);
+  if (from < 0) throw new Error(`mock quote not found in ${id}: ${start}`);
+  if (until) {
+    const stop = text.indexOf(until, from);
+    if (stop < 0) throw new Error(`mock quote end not found in ${id}: ${until}`);
+    return text.slice(from, stop + until.length);
+  }
   const end = text.indexOf(".", from);
   return text.slice(from, end < 0 ? undefined : end + 1);
 }
 
-function cite(id: string, start: string) {
-  return { id, cau_trich: quoteFrom(id, start), trang: DETAILS[id].dieu_khoan.trang };
+function cite(id: string, start: string, until?: string) {
+  return { id, cau_trich: quoteFrom(id, start, until), trang: prov(id).trang };
 }
 
 const STEPS = ["ton_tai", "con_hieu_luc", "khop_nguyen_van", "mo_hinh_danh_gia"] as const;
@@ -227,29 +195,28 @@ function attempt(lan_thu: number, failAt?: (typeof STEPS)[number], ly_do?: strin
 export type MockScenario = "verified" | "unverified";
 
 export function pickScenario(question: string): MockScenario {
-  return /hoá đơn|hóa đơn|hoa don/i.test(question) ? "unverified" : "verified";
+  return /hoá đơn|hóa đơn|hoa don/i.test(question.normalize("NFC")) ? "unverified" : "verified";
 }
 
 export const MOCK_SUGGESTIONS = [
-  "Quán cà phê của tôi doanh thu khoảng 800 triệu một năm thì có phải nộp thuế không?",
+  "Quán cà phê của tôi doanh thu khoảng 700 triệu một năm thì có phải nộp thuế không?",
   "Quán tôi có bắt buộc dùng hoá đơn điện tử từ máy tính tiền không?",
 ] as const;
 
-/** What the mic mock "hears" (the real flow sends the recording to Muse Voice Transcribe). */
+/** What the mic example "hears" in film / mock mode (the real flow uses Muse Voice Transcribe). */
 export const MOCK_TRANSCRIPT = MOCK_SUGGESTIONS[0];
 
-/**
- * MOCK [ILLUSTRATIVE] — what the photo reader returns in film / mock mode. The real flow sends
- * the photo to Muse Spark (app/api/read-image). Not a real document.
- */
+/** Example photo reading for film / mock mode — not a real document (the UI labels it). */
 export const MOCK_PHOTO_READING = {
   la_giay_to_thue: true,
-  loai_giay_to: "Thông báo về thuế (ảnh minh hoạ)",
+  loai_giay_to: "Thông báo về thuế (ảnh mẫu)",
   tom_tat:
-    "[MINH HOẠ] Giấy đề nghị hộ kinh doanh tự kê khai doanh thu năm 2026 và nêu mức doanh thu không phải nộp thuế.",
+    "Ảnh mẫu: thông báo đề nghị hộ kinh doanh tự kê khai doanh thu năm 2026 với cơ quan thuế.",
   ngay_tren_giay: "",
   cau_hoi_goi_y: MOCK_SUGGESTIONS[0],
 } as const;
+
+const BILLION = 1_000_000_000;
 
 // ── /ask ─────────────────────────────────────────────────────────────────────────────────────
 export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoRong {
@@ -257,181 +224,229 @@ export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoR
   const rev = req.ho_so.doanh_thu_nam;
   const revText = formatVndWords(rev);
   const dateText = formatDate(d);
-  const in2026 = compareIso(d, "2026-01-01") >= 0;
+  const afterNd68 = compareIso(d, VB.nd68.hieu_luc_tu) >= 0;
 
-  if (scenario === "unverified") {
-    const afterNd68 = compareIso(d, VB.nd68.hieu_luc_tu) >= 0;
-    const mustUse = afterNd68 ? rev > 1_000_000_000 : rev >= 1_000_000_000;
-    const rule = afterNd68
-      ? "mức bắt buộc là doanh thu trên 1 tỷ đồng/năm"
-      : `tại ngày ${dateText}, mức bắt buộc dùng hoá đơn điện tử từ máy tính tiền là doanh thu từ 1 tỷ đồng/năm trở lên`;
-    return {
-      tra_loi: mustUse
-        ? `Với doanh thu ${revText}/năm, quán của bạn thuộc diện phải dùng hoá đơn điện tử; ${rule}. Cách hiểu ở đúng mức 1 tỷ đồng còn khác nhau giữa các văn bản.`
-        : `Với doanh thu ${revText}/năm, quán của bạn chưa bắt buộc dùng hoá đơn điện tử; ${rule}. Quán vẫn có thể đăng ký dùng tự nguyện. Cách hiểu ở đúng mức 1 tỷ đồng còn khác nhau giữa các văn bản.`,
-      trich_dan: afterNd68
-        ? [
-            cite("nd68-2026-d8-k5", "Hộ kinh doanh có doanh thu năm trên"),
-            cite("nd141-2026-d1-k1", "Thay cụm từ"),
-          ]
-        : [cite("nd70-2025-d1-k11", "Hộ, cá nhân kinh doanh")],
-      checklist: [
-        {
-          viec: "Hỏi kế toán về nghĩa vụ hoá đơn khi doanh thu gần 1 tỷ đồng",
-          han: "2026-11-18",
-          can_cu: "nd68-2026-d8-k5",
-        },
-      ],
-      can_xac_nhan: true,
-      kiem_chung: [
-        attempt(
-          1,
-          "con_hieu_luc",
-          afterNd68
-            ? "Trích Nghị định 70/2025/NĐ-CP (mức từ 1 tỷ đồng trở lên): đã có văn bản khác áp dụng tại ngày này."
-            : `Trích Nghị định 68/2026/NĐ-CP: chưa có hiệu lực tại ngày ${dateText}.`,
-        ),
-        attempt(2, "khop_nguyen_van", "Câu trích không có nguyên văn ở trang 6."),
-        attempt(
-          3,
-          "mo_hinh_danh_gia",
-          "Nhận định về trường hợp doanh thu đúng 1 tỷ đồng chưa có căn cứ rõ.",
-        ),
-      ],
-    };
-  }
+  if (scenario === "unverified") return einvoice(rev, revText, dateText, afterNd68);
 
-  if (!in2026) {
+  // Before 01/01/2026: Circular 40/2021, 100 million.
+  if (compareIso(d, "2026-01-01") < 0) {
     const over = rev > 100_000_000;
     return {
       tra_loi: over
         ? `Tại ngày ${dateText}, mức doanh thu không phải nộp thuế GTGT và thuế TNCN là từ 100 triệu đồng/năm trở xuống. Doanh thu ${revText} cao hơn mức này, nên quán thuộc diện phải nộp thuế.`
         : `Tại ngày ${dateText}, doanh thu ${revText} không vượt mức 100 triệu đồng/năm, nên quán không phải nộp thuế GTGT và thuế TNCN.`,
-      trich_dan: [cite("tt40-2021-d4-k1", "Hộ kinh doanh")],
+      trich_dan: [cite("40-2021-TT-BTC-D4-K2", "Hộ kinh doanh, cá nhân kinh doanh có doanh thu")],
       checklist: [],
       can_xac_nhan: false,
       kiem_chung: [attempt(1)],
     };
   }
 
-  const over = rev > 1_000_000_000;
-  const afterNd68 = compareIso(d, VB.nd68.hieu_luc_tu) >= 0;
-  // Applied date before Decree 141 was issued: the 1-billion figure reaches this date only
-  // retroactively. How to treat that is open decision 6 (A + B) — say it plainly meanwhile.
+  const over = rev > BILLION;
   const retro = compareIso(d, VB.nd141.ngay_ban_hanh) < 0;
   const retroNote = retro
-    ? " Mức 1 tỷ đồng được ban hành ngày 29/04/2026 và áp dụng hồi tố từ 01/01/2026."
+    ? " Nghị định 141/2026/NĐ-CP ban hành ngày 29/04/2026 nhưng có hiệu lực từ 01/01/2026, nên mức 01 tỷ đồng áp dụng hồi tố cho ngày này."
     : "";
+  const base = [
+    cite("141-2026-ND-CP-D1-K1", "Sửa đổi cụm từ"),
+    cite("09-2026-QH16-D2", "Hàng hóa, dịch vụ của hộ"),
+    cite("09-2026-QH16-D1", "Cá nhân cư trú"),
+    ...(retro ? [cite("141-2026-ND-CP-D3", "Nghị định này có hiệu lực")] : []),
+  ];
+  const lead =
+    "Từ 01/01/2026, luật giao Chính phủ quy định mức doanh thu năm không chịu thuế GTGT và không phải nộp thuế TNCN; Nghị định 141/2026/NĐ-CP sửa mức trong Nghị định 68/2026/NĐ-CP từ “500 triệu đồng” thành “01 tỷ đồng”.";
+
+  // 01/01–04/03/2026: Decree 68 itself starts on 05/03/2026 — say so and ask for confirmation.
+  if (!afterNd68) {
+    return {
+      tra_loi: `${lead} Nghị định 68/2026/NĐ-CP có hiệu lực từ 05/03/2026, nên cách áp dụng mức này cho ngày ${dateText} cần kế toán hoặc cơ quan thuế xác nhận.${retroNote}`,
+      trich_dan: base,
+      checklist: [],
+      can_xac_nhan: true,
+      kiem_chung: [
+        attempt(
+          1,
+          "con_hieu_luc",
+          `Trích dẫn 1 (68-2026-ND-CP-D3-K1): chưa có hiệu lực tại ngày ${dateText} (Nghị định 68/2026/NĐ-CP có hiệu lực từ 05/03/2026).`,
+        ),
+        attempt(2),
+      ],
+    };
+  }
+
+  const year = Number(d.slice(0, 4));
   return {
     tra_loi: over
-      ? `Từ 01/01/2026, mức không phải nộp thuế GTGT và thuế TNCN là doanh thu từ 1 tỷ đồng/năm trở xuống. Doanh thu ${revText} cao hơn mức này, nên quán nộp thuế theo tỷ lệ trên doanh thu.${retroNote}`
-      : `Từ 01/01/2026, hộ kinh doanh có doanh thu từ 1 tỷ đồng/năm trở xuống không phải nộp thuế GTGT và thuế TNCN. Doanh thu ${revText} của quán không vượt mức này. Quán vẫn phải tự kê khai doanh thu.${retroNote}`,
-    trich_dan: [
-      cite("nd141-2026-d1-k1", "Hộ kinh doanh có doanh thu năm"),
-      cite("l09-2026-d2", "hàng hoá, dịch vụ"),
-      ...(afterNd68 ? [cite("nd68-2026-d13-k3", "Hộ kinh doanh")] : []),
-    ],
-    checklist: afterNd68
-      ? [
+      ? `${lead} Doanh thu ${revText} của quán cao hơn mức 01 tỷ đồng, nên quán khai thuế, nộp thuế theo quy định.${retroNote}`
+      : `${lead} Doanh thu ${revText} của quán không vượt mức 01 tỷ đồng, nên quán không phải nộp thuế GTGT và thuế TNCN, nhưng vẫn phải thông báo doanh thu thực tế với cơ quan thuế.${retroNote}`,
+    trich_dan: over
+      ? base
+      : [
+          ...base,
+          cite("68-2026-ND-CP-D8-K1", "Trường hợp hộ kinh doanh, cá nhân kinh doanh tự xác định"),
+          cite("141-2026-ND-CP-D4-K1", "Trường hợp hộ kinh doanh"),
+        ],
+    checklist: over
+      ? []
+      : [
           {
-            viec: "Rà lại doanh thu ước tính năm 2026 so với mức 1 tỷ đồng",
-            han: "2026-11-10",
-            can_cu: "nd141-2026-d1-k1",
+            viec: `Thông báo doanh thu thực tế năm ${year} với cơ quan thuế`,
+            han: `${year + 1}-01-31`,
+            can_cu: "68-2026-ND-CP-D8-K1",
           },
           {
-            viec: "Tự kê khai doanh thu năm 2026 với cơ quan thuế",
-            han: "2027-01-31",
-            can_cu: "nd68-2026-d13-k3",
+            viec: "Đối chiếu các khoản GTGT, TNCN đã kê khai, nộp trong năm 2026 để xử lý số thuế đã nộp — cần kế toán xác nhận",
+            han: "",
+            can_cu: "141-2026-ND-CP-D4-K1",
           },
-        ]
-      : [],
+        ],
     can_xac_nhan: false,
     kiem_chung: [
       attempt(
         1,
         "con_hieu_luc",
-        retro
-          ? `Trích Luật 149/2025/QH15 (mức 500 triệu đồng): có văn bản ban hành sau ngày ${dateText} nhưng áp dụng hồi tố cho ngày này. Tìm văn bản đang áp dụng.`
-          : `Trích Luật 149/2025/QH15 (mức 500 triệu đồng): đã được sửa đổi tại ngày ${dateText}. Tìm văn bản đang áp dụng.`,
+        `Trích dẫn 1 (68-2026-ND-CP-D3-K1): không áp dụng ngày ${dateText}: đã bị sửa đổi bởi 141-2026-ND-CP-D1-K1 (từ 01/01/2026). Tìm điều khoản đang áp dụng.`,
       ),
       attempt(2),
     ],
   };
 }
 
+function einvoice(
+  rev: number,
+  revText: string,
+  dateText: string,
+  afterNd68: boolean,
+): AskResponseMoRong {
+  const mustUse = afterNd68 ? rev > BILLION : rev >= BILLION;
+  const rule = afterNd68
+    ? "từ 01/01/2026, hộ kinh doanh có doanh thu năm trên 01 tỷ đồng phải dùng hoá đơn điện tử có mã của cơ quan thuế hoặc khởi tạo từ máy tính tiền"
+    : `tại ngày ${dateText}, hộ kinh doanh có doanh thu hằng năm từ 01 tỷ đồng trở lên dùng hoá đơn điện tử khởi tạo từ máy tính tiền`;
+  const basis = afterNd68 ? "141-2026-ND-CP-D1-K2" : "70-2025-ND-CP-D1-K8";
+  return {
+    tra_loi: mustUse
+      ? `Theo văn bản, ${rule}. Với doanh thu ${revText}/năm, quán thuộc diện này. Cách hiểu ở đúng mức 01 tỷ đồng khác nhau giữa các văn bản, nên cần kế toán xác nhận.`
+      : `Theo văn bản, ${rule}. Với doanh thu ${revText}/năm, quán chưa thuộc diện bắt buộc và có thể đăng ký dùng nếu có nhu cầu. Cách hiểu ở đúng mức 01 tỷ đồng khác nhau giữa các văn bản, nên cần kế toán xác nhận.`,
+    trich_dan: afterNd68
+      ? [
+          cite(
+            "141-2026-ND-CP-D1-K2",
+            "Hộ kinh doanh, cá nhân kinh doanh có doanh thu năm trên 01 tỷ",
+          ),
+          cite(
+            "68-2026-ND-CP-D8-K5",
+            "Hộ kinh doanh, cá nhân kinh doanh có doanh thu tính thuế giá trị gia tăng hằng năm từ 01 tỷ",
+            "hóa đơn điện tử có mã của cơ quan thuế",
+          ),
+        ]
+      : [
+          cite(
+            "70-2025-ND-CP-D1-K8",
+            "Hộ kinh doanh, cá nhân kinh doanh theo quy định tại khoản 1 Điều 51",
+            "từ 01 tỷ đồng trở lên",
+          ),
+        ],
+    checklist: [
+      {
+        viec: "Hỏi kế toán về nghĩa vụ hoá đơn điện tử khi doanh thu gần mức 01 tỷ đồng",
+        han: "",
+        can_cu: basis,
+      },
+    ],
+    can_xac_nhan: true,
+    kiem_chung: [
+      attempt(
+        1,
+        "con_hieu_luc",
+        afterNd68
+          ? `Trích dẫn 2 (68-2026-ND-CP-D8-K5): không áp dụng ngày ${dateText}: đã bị sửa đổi bởi 141-2026-ND-CP-D1-K2.`
+          : `Trích dẫn 1 (68-2026-ND-CP-D8-K5): chưa có hiệu lực tại ngày ${dateText}.`,
+      ),
+      attempt(2, "khop_nguyen_van", "Trích dẫn 1: câu trích không có nguyên văn ở trang đã dẫn."),
+      attempt(
+        3,
+        "mo_hinh_danh_gia",
+        "Nhận định về trường hợp doanh thu đúng 01 tỷ đồng chưa có căn cứ rõ: “từ 01 tỷ đồng trở lên” (Nghị định 70/2025) khác “trên 01 tỷ đồng” (Nghị định 141/2026).",
+      ),
+    ],
+  };
+}
+
 export function mockDetail(id: string): ChiTietDieuKhoan | null {
-  return DETAILS[id] ?? null;
+  return PROVS[id] ? detail(id) : null;
 }
 
 // ── /ingest ──────────────────────────────────────────────────────────────────────────────────
-// MOCK [ILLUSTRATIVE] — the "new document" is Decree 141/2026 amending Decree 68/2026. Article
-// numbers and texts are placeholders (prefixed [MINH HOẠ]); role A picks and verifies the real one.
+// Role A's replay scenario (demo/role_a/expected.json): Decree 141/2026 added to a corpus that
+// held Decree 68/2026. Excerpts are verbatim from 141; the old texts are verbatim from 68.
+const strip = (s: string) => s.replace(/^\d+\.\s*/, "");
+
 export function mockIngest(hoSo: HoSo): IngestResponse {
-  const underThreshold = hoSo.doanh_thu_nam <= 1_000_000_000;
-  const rowThreshold = {
-    trich_doan:
-      "Hộ kinh doanh có doanh thu năm từ 01 tỷ đồng trở xuống không phải nộp thuế giá trị gia tăng và thuế thu nhập cá nhân.",
+  const rev = hoSo.doanh_thu_nam;
+  const revText = formatVndWords(rev);
+  const between = rev > 500_000_000 && rev <= BILLION;
+  const phrase = strip(prov("141-2026-ND-CP-D1-K1").noi_dung);
+  const why = between
+    ? `Mức “500 triệu đồng” trong khoản này được sửa thành “01 tỷ đồng”, áp dụng từ 01/01/2026. Doanh thu ${revText} của quán nằm giữa hai mức, nên thay đổi này ảnh hưởng tới quán.`
+    : rev <= 500_000_000
+      ? `Mức “500 triệu đồng” được sửa thành “01 tỷ đồng”. Doanh thu ${revText} của quán đã dưới mức cũ, nên kết quả cho quán không đổi.`
+      : `Mức “500 triệu đồng” được sửa thành “01 tỷ đồng”. Doanh thu ${revText} của quán vẫn cao hơn mức mới.`;
+  const row = (target: string) => ({
+    trich_doan: phrase,
     loai: "sua_doi" as const,
-    dieu_bi_tac_dong: "68-2026-ND-CP-D4-K1",
-    anh_huong_toi_ho_so: underThreshold,
-    giai_thich: underThreshold
-      ? `Mức doanh thu không phải nộp thuế GTGT và TNCN tăng từ 500 triệu lên 1 tỷ đồng/năm. Doanh thu ${formatVndWords(hoSo.doanh_thu_nam)} của quán không vượt mức mới.`
-      : `Mức doanh thu không phải nộp thuế GTGT và TNCN tăng từ 500 triệu lên 1 tỷ đồng/năm. Doanh thu ${formatVndWords(hoSo.doanh_thu_nam)} của quán vẫn cao hơn mức mới.`,
-    viec_can_lam: underThreshold
-      ? "Xác nhận với kế toán việc không phải nộp thuế GTGT, TNCN cho năm 2026"
-      : "",
+    dieu_bi_tac_dong: target,
+    anh_huong_toi_ho_so: between,
+    giai_thich: why,
+    viec_can_lam: "",
     han: "",
-    dieu_cu: {
-      id: "68-2026-ND-CP-D4-K1",
-      so_hieu: VB.nd68.so_hieu,
-      noi_dung: `${PLACEHOLDER} Hộ kinh doanh có doanh thu năm từ 500 triệu đồng trở xuống không phải nộp thuế giá trị gia tăng và thuế thu nhập cá nhân.`,
-    },
-  };
-  const overThreshold = hoSo.doanh_thu_nam > 1_000_000_000;
-  const rowInvoice = {
-    trich_doan: "Hộ kinh doanh có doanh thu năm trên 01 tỷ đồng phải sử dụng hoá đơn điện tử.",
+    dieu_cu: { id: target, so_hieu: VB.nd68.so_hieu, noi_dung: prov(target).noi_dung },
+  });
+  const exactlyBillion = rev === BILLION;
+  const invoiceRow = {
+    trich_doan: quoteFrom(
+      "141-2026-ND-CP-D1-K2",
+      "Hộ kinh doanh, cá nhân kinh doanh có doanh thu năm trên 01 tỷ",
+    ),
     loai: "sua_doi" as const,
     dieu_bi_tac_dong: "68-2026-ND-CP-D8-K5",
-    anh_huong_toi_ho_so: overThreshold,
-    giai_thich: overThreshold
-      ? "Quán có doanh thu trên 1 tỷ đồng/năm nên phải dùng hoá đơn điện tử."
-      : "Mức bắt buộc dùng hoá đơn điện tử là doanh thu trên 1 tỷ đồng/năm; quán chưa thuộc diện bắt buộc.",
-    viec_can_lam: overThreshold ? "Đăng ký sử dụng hoá đơn điện tử với cơ quan thuế" : "",
-    han: overThreshold ? "2026-12-31" : "",
+    anh_huong_toi_ho_so: exactlyBillion,
+    giai_thich: exactlyBillion
+      ? "Mức bắt buộc dùng hoá đơn điện tử đổi từ “từ 01 tỷ đồng trở lên” thành “trên 01 tỷ đồng”; doanh thu đúng 01 tỷ đồng không còn thuộc diện bắt buộc."
+      : `Mức bắt buộc dùng hoá đơn điện tử đổi từ “từ 01 tỷ đồng trở lên” thành “trên 01 tỷ đồng”. Với doanh thu ${revText}, nghĩa vụ của quán không đổi.`,
+    viec_can_lam: "",
+    han: "",
     dieu_cu: {
       id: "68-2026-ND-CP-D8-K5",
       so_hieu: VB.nd68.so_hieu,
-      noi_dung: `${PLACEHOLDER} Hộ kinh doanh có doanh thu năm từ 500 triệu đồng trở lên phải sử dụng hoá đơn điện tử có mã của cơ quan thuế.`,
+      noi_dung: prov("68-2026-ND-CP-D8-K5").noi_dung,
     },
   };
-  const rows = [rowThreshold, rowInvoice];
+  const rows = [
+    row("68-2026-ND-CP-D3-K1"),
+    row("68-2026-ND-CP-D4-K1"),
+    row("68-2026-ND-CP-D8-K1"),
+    invoiceRow,
+  ];
   return {
     van_ban_moi: {
       so_hieu: VB.nd141.so_hieu,
       tieu_de: VB.nd141.tieu_de,
       hieu_luc_tu: VB.nd141.hieu_luc_tu,
+      ngay_ban_hanh: VB.nd141.ngay_ban_hanh,
     },
     dieu_bi_anh_huong: rows,
-    viec_can_lam: rows
-      .filter((r) => r.anh_huong_toi_ho_so && r.viec_can_lam)
-      .map((r) => ({
-        viec: r.viec_can_lam,
-        han: r.han,
-        can_cu: r.dieu_bi_tac_dong,
-        trich_doan: r.trich_doan,
-      })),
-    bi_loai: [
-      {
-        trich_doan: "Hộ kinh doanh được miễn toàn bộ các loại thuế trong năm 2026.",
-        loai: "sua_doi",
-        dieu_bi_tac_dong: "68-2026-ND-CP-D3",
-        anh_huong_toi_ho_so: true,
-        giai_thich: "",
-        viec_can_lam: "",
-        han: "",
-        ly_do: "trích đoạn không có nguyên văn trong văn bản mới",
-      },
-    ],
+    viec_can_lam: between
+      ? [
+          {
+            // Verbatim from role A's expected.json (viec_goi_y); no deadline is stated in the text.
+            viec: "Đối chiếu doanh thu năm và các khoản GTGT/TNCN đã kê khai, nộp để kiểm tra xử lý số thuế nộp thừa theo Điều 4 khoản 1 Nghị định 141 và Điều 12 Nghị định 68.",
+            han: "",
+            can_cu: "141-2026-ND-CP-D4-K1",
+            trich_doan: strip(prov("141-2026-ND-CP-D4-K1").noi_dung),
+          },
+        ]
+      : [],
+    bi_loai: [],
     can_xac_nhan: true,
   };
 }
