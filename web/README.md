@@ -49,6 +49,37 @@ With `NEXT_PUBLIC_LEXVI_API_URL` set, the Ask screen calls `POST /ask`, then `GE
 verification attempts and show the article text the agent read (`lib/api/adapter.ts`). The backend reports
 statuses and refusal reasons as Vietnamese sentences; the adapter maps them to the UI's statuses and checks.
 
+### Two public sites
+
+The same code builds two Vercel projects:
+
+| Site | Project | Build env | What it does |
+|---|---|---|---|
+| https://lexvi.vercel.app | `lexvi` | `NEXT_PUBLIC_LEXVI_LIVE_URL=https://lexvi-live.vercel.app` | Prepared example responses, answered instantly. The landing and the example banner link to the live copy. No keys. |
+| https://lexvi-live.vercel.app | `lexvi-live` | `NEXT_PUBLIC_LEXVI_API_URL=https://lexvi-api.onrender.com`, `NEXT_PUBLIC_LEXVI_PREPARED_URL=https://lexvi.vercel.app` | Live answers from the backend on Render, plus `MODEL_API_KEY` (server-only) for voice and photo. |
+
+**How the live site behaves:**
+- **Waking the backend:** the backend runs on a free instance that can be asleep. `wakeBackend()` (`lib/api/client.ts`)
+  polls `GET /health` for up to 180 s before the first call, and the live banner shows the state. A GitHub workflow,
+  `.github/workflows/keep-warm.yml`, pings it every 10 minutes during judging.
+- **Language:** the sample questions send their Vietnamese wording, and answers come back in Vietnamese.
+- **Limits:** the backend applies a per-visitor limit and a daily budget, and Ask and Alerts show a plain message when
+  a limit is reached (429). The voice and photo routes allow 10 calls per hour per visitor on Vercel
+  (`LEXVI_INPUT_LIMIT_PER_HOUR`).
+
+**Deploying either site:** always deploy from a clean copy of the committed tree, never from a working folder that
+holds `.env` files:
+
+```sh
+mkdir ../deploy-lexvi && git archive --format=tar HEAD:web | tar -x -C ../deploy-lexvi
+cd ../deploy-lexvi && vercel link --yes --project lexvi && rm -f .env.local   # or --project lexvi-live
+vercel deploy --prod --yes --archive=tgz
+```
+
+Both projects set `ENABLE_EXPERIMENTAL_COREPACK=1`, so Vercel uses the pnpm version in `packageManager`. `lexvi-live` was
+created with `vercel project add`, which leaves the framework unset. Its deploys need `{"framework": "nextjs"}` in a
+`vercel.json` next to `package.json`, or Next.js chosen in the project settings; without it every route returns 404.
+
 ### Benchmark results
 
 After `python -m scripts.run_eval` (repo root) writes `eval/results-<timestamp>.json`:
@@ -89,7 +120,12 @@ All variables are optional and documented in [`.env.example`](.env.example).
 | Variable | Default | Purpose |
 |---|---|---|
 | `NEXT_PUBLIC_LEXVI_API_URL` | empty → mock data | Backend base URL (`POST /ask`, proposed `GET /dieu-khoan/{id}`). Public; inlined at build time. The backend must allow this origin via CORS. |
-| `NEXT_PUBLIC_LEXVI_API_TIMEOUT_MS` | `180000` | Timeout for backend calls (a real `/ask` takes 30–90 s). |
+| `NEXT_PUBLIC_LEXVI_API_TIMEOUT_MS` | `240000` | Timeout for backend calls (a real `/ask` took 45–110 s; 102 s on the free Render instance). |
+| `NEXT_PUBLIC_LEXVI_LIVE_URL` | unset | On the prepared site: the live copy, for the "Try it live" links. |
+| `NEXT_PUBLIC_LEXVI_PREPARED_URL` | unset | On the live site: the prepared copy, for the "Prepared examples" link. |
+| `NEXT_PUBLIC_SITE_URL` | unset | The site's own URL, used for the link-preview image. |
+| `MODEL_API_KEY` | unset | Server-only. Enables live voice and photo input (`app/api/*`). |
+| `LEXVI_INPUT_LIMIT_PER_HOUR` | `10` on Vercel, off elsewhere | Voice and photo calls allowed per visitor per hour, per route. |
 | `NEXT_TELEMETRY_DISABLED` | unset | Set to `1` to disable Next.js telemetry. |
 
 Never put a key or token in a `NEXT_PUBLIC_*` variable; never commit `.env.local`.
