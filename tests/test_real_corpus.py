@@ -43,9 +43,25 @@ def test_delayed_clause_and_early_clause_do_not_inherit_document_date(real):
 
 
 def test_ancestor_amendment_blocks_all_its_clauses_but_not_siblings(real):
-    assert not real.status("68-2026-ND-CP-D3-K1", "2026-11-03").in_force
-    assert not real.status("68-2026-ND-CP-D3-K2", "2026-11-03").in_force
+    # Decree 141 Art. 1(1) only replaces the phrase "500 triệu đồng" in Decree 68 Art. 3: every clause
+    # of Art. 3 is no longer in force as written, but each is citable when read with 141 Art. 1(1).
+    for pid in ("68-2026-ND-CP-D3-K1", "68-2026-ND-CP-D3-K2"):
+        status = real.status(pid, "2026-11-03")
+        assert not status.in_force and status.amended_by == ("141-2026-ND-CP-D1-K1",)
     assert real.status("68-2026-ND-CP-D13-K1", "2026-11-03").in_force
+    quote = "thuộc đối tượng không chịu thuế giá trị gia tăng."
+    c = {"id": "68-2026-ND-CP-D3-K1", "cau_trich": quote, "nhan_dinh": "ngưỡng"}
+    assert citation_problems(real, c, "2026-11-03")
+    assert not citation_problems(real, c, "2026-11-03", cited={"68-2026-ND-CP-D3-K1", "141-2026-ND-CP-D1-K1"})
+
+
+def test_decree_70_items_amend_decree_123_from_june_2025(real):
+    # Art. 1(9) of Decree 70 rewrites clause 3 of Art. 12 of Decree 123; Art. 1(10) edits points of Art. 13(3).
+    assert real.status("123-2020-ND-CP-D12-K3", "2025-05-31").in_force
+    whole = real.status("123-2020-ND-CP-D12-K3", "2025-06-01")
+    assert not whole.in_force and whole.replaced_by == ("70-2025-ND-CP-D1-K9",) and not whole.amended_by
+    assert real.status("123-2020-ND-CP-D13-K3", "2025-06-01").amended_by == ("70-2025-ND-CP-D1-K10",)
+    assert real.status("123-2020-ND-CP-D12-K1", "2025-06-01").in_force  # untouched sibling
 
 
 def test_addition_does_not_invalidate_unmodified_existing_income_exemptions(real):
