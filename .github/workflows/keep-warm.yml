@@ -1,0 +1,43 @@
+# Keeps the LexVi live demo's backend awake during judging.
+#
+# The backend runs on Render's Free instance. It sleeps after 15 minutes without inbound traffic and
+# takes about a minute to wake (https://render.com/docs/free). This job pings /health every 10 minutes
+# until KEEP_WARM_UNTIL, then stops pinging so the service can sleep again.
+#
+# Allowances:
+# - Render: one always-awake Free service uses 24 of the workspace's 750 free instance-hours a month
+#   per day (about 155 h from 4 to 10 Nov).
+# - GitHub: standard GitHub-hosted runners are free for public repositories.
+#
+# To stop early, delete this file, or open Actions → "Keep the live demo warm" → Disable workflow.
+name: Keep the live demo warm
+
+on:
+  schedule:
+    # Every 10 minutes, off the top of the hour, where GitHub delays scheduled runs the most.
+    - cron: "7,17,27,37,47,57 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      HEALTH_URL: https://lexvi-api.onrender.com/health
+      KEEP_WARM_UNTIL: "2026-11-10" # UTC; after this date the job exits without pinging
+    steps:
+      - name: Ping /health
+        run: |
+          if [[ "$(date -u +%F)" > "$KEEP_WARM_UNTIL" ]]; then
+            echo "Past $KEEP_WARM_UNTIL: not pinging."
+            exit 0
+          fi
+          curl --fail --silent --show-error --max-time 20 \
+            --retry 8 --retry-delay 10 --retry-all-errors "$HEALTH_URL"
+          echo
