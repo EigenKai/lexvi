@@ -47,7 +47,7 @@ export const vi = {
     checking: "Đang kết nối máy chủ trực tiếp…",
     waking: "Đang đánh thức máy chủ trực tiếp (gói miễn phí), mất khoảng một phút…",
     ready:
-      "Câu trả lời đến trực tiếp từ Muse Spark, mất khoảng một phút. Mỗi người dùng có giới hạn lượt hỏi.",
+      "Câu trả lời đến trực tiếp từ Muse Spark, mất khoảng một đến hai phút. Mỗi người dùng có giới hạn lượt hỏi.",
     down: "Máy chủ trực tiếp chưa phản hồi. Hãy thử lại sau một phút, hoặc dùng phản hồi mẫu.",
     toPrepared: "Phản hồi mẫu (tức thì) →",
     tryLive: "Dùng thử trực tiếp →",

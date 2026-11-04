@@ -25,8 +25,9 @@ import { isObj, str } from "./util";
  * The backend must allow this origin via CORS (JSON POST → preflight OPTIONS).
  */
 const API_URL = process.env.NEXT_PUBLIC_LEXVI_API_URL?.trim().replace(/\/+$/, "") || null;
-// The real /ask takes 30–90 s and /ingest ~45 s or more, so the default leaves headroom.
-const TIMEOUT_MS = Number(process.env.NEXT_PUBLIC_LEXVI_API_TIMEOUT_MS) || 180_000;
+// The real /ask takes 45–110 s (102 s measured on the free Render instance) and /ingest ~60 s;
+// the default leaves headroom for a long run.
+const TIMEOUT_MS = Number(process.env.NEXT_PUBLIC_LEXVI_API_TIMEOUT_MS) || 240_000;
 
 export const usingMock = API_URL === null;
 
