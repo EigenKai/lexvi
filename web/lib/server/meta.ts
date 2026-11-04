@@ -43,7 +43,9 @@ export function requestId(): string {
  */
 export function sameOrigin(req: Request): boolean {
   const origin = req.headers.get("origin");
-  if (!origin) return true; // same-origin fetches from older browsers / server-to-server
+  // Browsers send Origin on every POST, so a missing Origin means a script or server call: refuse it,
+  // or anyone could spend the Meta API credits through these routes.
+  if (!origin) return false;
   try {
     return new URL(origin).host === new URL(req.url).host || origin === new URL(req.url).origin;
   } catch {

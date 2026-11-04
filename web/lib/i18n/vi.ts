@@ -10,6 +10,7 @@ export const vi = {
   tagline: "Tra cứu thuế có trích dẫn",
 
   nav: {
+    home: "Trang chủ",
     ask: "Hỏi đáp",
     alerts: "Cảnh báo",
     profile: "Hồ sơ",
@@ -33,6 +34,8 @@ export const vi = {
   /** Shown only in the English UI; empty in Vietnamese. */
   sourceNote: "",
 
+  notFound: { title: "Trang này không tồn tại." },
+
   skipToContent: "Chuyển tới nội dung chính",
 
   mockBadge: "Phản hồi mẫu chuẩn bị sẵn · không phải kết quả trực tiếp",
@@ -54,6 +57,8 @@ export const vi = {
     searching: "Đang tìm điều khoản theo ngày áp dụng…",
     error: "Không lấy được câu trả lời. Hãy thử lại.",
     errTimeout: "Máy chủ trả lời quá lâu. Hãy thử lại.",
+    errLength: "Câu hỏi cần từ 3 đến 2.000 ký tự.",
+    tooLong: (n: number) => `${n.toLocaleString("vi-VN")} / 2.000 ký tự`,
     empty: "Nhập câu hỏi hoặc chọn một câu hỏi mẫu để bắt đầu.",
     elapsed: (s: number) => `${s} giây`,
     runMeta: (steps: number, secs: number) => `${steps} bước · ${secs} giây`,
@@ -195,6 +200,14 @@ export const vi = {
     amends: "Sửa đổi",
     referredBy: "Được dẫn chiếu bởi",
     retroOnly: "áp dụng hồi tố",
+    scope: {
+      toan_muc: "toàn bộ điều khoản",
+      thay_cum_tu: "thay cụm từ",
+      mot_phan: "một phần",
+      bo_sung: "bổ sung",
+    },
+    showAll: (n: number) => `Xem tất cả ${n}`,
+    showLess: "Thu gọn",
     quote: "Câu được trích",
     articleText: "Nội dung điều khoản",
     chain: "Chuỗi sửa đổi",
@@ -230,6 +243,9 @@ export const vi = {
     errNotPdf: "Tệp này không phải PDF. Hãy chọn một tệp PDF có lớp chữ.",
     errTooBig: "Tệp lớn hơn 20 MB.",
     errFailed: "Không đọc được văn bản. Hãy thử lại.",
+    errScanned:
+      "Tệp PDF này không có lớp chữ (có thể là bản quét). Hãy dùng tệp PDF chọn được chữ.",
+    errBadPdf: "Tệp này không phải PDF đọc được.",
     errNeedFile: "Máy chủ cần một tệp PDF. Hãy chọn một tệp PDF có lớp chữ.",
     replay: (n: string) =>
       `Phát lại lịch sử: ${/NĐ/.test(n) ? "Nghị định" : "văn bản"} ${n} được bổ sung vào kho`,
@@ -306,5 +322,117 @@ export const vi = {
     title: "Đang xây dựng",
     body: "Màn hình này sẽ có trong bản demo.",
     back: "Về Hỏi đáp",
+  },
+  landing: {
+    place: "TP. Hồ Chí Minh · 06:40",
+    title: "Đúng luật, đúng ngày.",
+    sub: "Tra cứu thuế có trích dẫn cho hộ kinh doanh. LexVi chỉ trả lời theo văn bản còn hiệu lực vào ngày bạn hỏi, và mở đúng điều khoản đã dựa vào.",
+    watch: "Xem video demo",
+    try: "Dùng thử bản demo",
+    builtOn: "Xây dựng trên Muse Spark · Meta Model API",
+    builtOnFull: "Xây dựng trên Muse Spark · Muse Voice Transcribe · Meta Model API",
+    scroll: "Cuộn xuống: buổi sáng của chú Minh",
+    minh1: "Minh: “Năm nay mình có phải nộp thuế không đây?”",
+    minh2: "Minh: “Trang này nói một trăm triệu. Trang kia năm trăm. Trang khác lại một tỷ.”",
+    minh3: "Minh: “Đâu thể đúng hết được… lỡ mình làm sai thì sao?”",
+    minh4: "Minh: “Hay hỏi AI xem sao.”",
+    storyNote:
+      "Câu chuyện dựa trên các thay đổi thuế năm 2026 · các ngưỡng lấy từ văn bản chính thức",
+    search: "ngưỡng thuế hộ kinh doanh 2026",
+    result: (n: number) => `kết quả ${n} · một trang web`,
+    answers: [
+      ["≤ 100 triệu đồng", "Thông tư 40/2021/TT-BTC"],
+      ["≤ 200 triệu đồng", "Luật Thuế GTGT 48/2024/QH15"],
+      ["≤ 500 triệu đồng", "Luật 149/2025/QH15"],
+      ["≤ 1 tỷ đồng", "Nghị định 141/2026/NĐ-CP"],
+    ],
+    newsTag: "Tin tức · Khảo sát VCCI, 2026",
+    newsStat: "66,8%",
+    news: "hộ kinh doanh gặp khó khăn khi theo kịp chính sách mới",
+    aiTitle: "Tìm kiếm AI",
+    aiKind: "RAG thông thường",
+    question:
+      "Hộ cà phê doanh thu năm 700 triệu đồng: ngưỡng không chịu GTGT năm 2026 là 500 triệu hay 1 tỷ?",
+    gloss: "",
+    cited: "Nguồn được dẫn: Nghị định 68/2026/NĐ-CP, khoản 1–2 Điều 3",
+    stamp: "Không còn hiệu lực",
+    stampSub:
+      "Nghị định 141/2026/NĐ-CP đã sửa cụm từ “500 triệu đồng” thành “01 tỷ đồng” tại Điều 3, từ 01/01/2026.",
+    aiNote:
+      "Kết quả thật từ bài kiểm thử của nhóm · câu A01 · cùng mô hình (muse-spark-1.3), RAG thông thường · 04/11/2026",
+    arrive: "Tra cứu thuế có trích dẫn cho hộ kinh doanh",
+    graphTitle: "Mỗi quy định có ngày bắt đầu, và chuỗi văn bản đã sửa đổi nó.",
+    graphAlt:
+      "Ảnh động: dòng thời gian 2021–2026 với Thông tư 40/2021, Luật 48/2024, Luật 149/2025 và Nghị định 141/2026. Con trỏ ngày 01/12/2025 làm nổi bật Thông tư 40 (≤ 100 triệu); ngày 04/11/2026 làm nổi bật Nghị định 141 (≤ 1 tỷ).",
+    graphNote:
+      "Các ngưỡng lấy từ văn bản chính thức · chấm tròn là ngày ban hành · Luật 09/2026/QH16 giao Chính phủ quy định mức; Nghị định 141/2026 sửa Nghị định 68/2026",
+    tourNote:
+      "Câu trả lời mẫu dựng từ văn bản chính thức · không phải kết quả trực tiếp · thông tin tham khảo, không phải tư vấn",
+    tour: [
+      {
+        label: "Ngày của bạn",
+        meta: "",
+        caption: "LexVi chỉ trả lời theo các quy định còn hiệu lực vào ngày bạn chọn.",
+      },
+      {
+        label: "Kiểm chứng trước khi trả lời",
+        meta: "Chạy bằng Muse Spark",
+        caption:
+          "Hệ thống kiểm tra từng trích dẫn bằng mã: điều khoản có thật, còn hiệu lực ngày đó, câu trích khớp nguyên văn; rồi Muse Spark đánh giá lại. Ở đây nó bắt được một khoản đã cũ và tự sửa.",
+      },
+      {
+        label: "Chính điều khoản đó",
+        meta: "ngày ban hành · chuỗi sửa đổi",
+        caption:
+          "Mỗi câu trả lời mở ra điều khoản gốc: ngày ban hành, ngày áp dụng và chuỗi văn bản đã sửa đổi nó.",
+      },
+      {
+        label: "Biết giới hạn",
+        meta: "không phải tư vấn · kế toán xác nhận",
+        caption:
+          "Khi các văn bản chưa thống nhất, LexVi nói rõ: sau ba lần kiểm chứng không đạt, câu trả lời được gắn nhãn “cần kế toán xác nhận”.",
+      },
+      {
+        label: "Hỏi bằng giọng nói hoặc ảnh",
+        meta: "Muse Voice Transcribe · Muse Spark",
+        caption:
+          "Nói câu hỏi, hoặc chụp thông báo thuế. Muse Voice Transcribe và Muse Spark chuyển thành câu hỏi.",
+      },
+    ],
+    proofKicker: "Trước khi tin dùng cho chuyện thuế",
+    proofTitle: "20 câu hỏi thật, hai hệ thống",
+    plain: "Tìm kiếm AI thông thường",
+    plainShort: "AI thường",
+    lexvi: "LexVi",
+    outdated: "dẫn quy định hết hiệu lực",
+    basis: "đúng căn cứ pháp lý",
+    markOut: "✕ đã hết hiệu lực",
+    markBasis: "✕ chưa đúng căn cứ",
+    markOk: "✓",
+    byDesign: "Số 0 của LexVi là do thiết kế: nó từ chối trích dẫn không còn hiệu lực.",
+    proofLink: "Xem toàn bộ kết quả kiểm thử",
+    proofNote:
+      "Bộ câu hỏi do nhóm soạn · N = 20 (11 câu bẫy về ngày) · cùng mô hình muse-spark-1.3 · chạy ngày 04/11/2026",
+    savedSub: "mỗi năm, không phải nộp",
+    savedLine:
+      "Minh: “Khoảng hai mươi bốn triệu một năm. Suýt nữa tôi nộp theo một quy định đã hết hiệu lực.”",
+    calling: "Đang gọi · kế toán của tôi…",
+    callLine: "Minh: “Alô, Minh đây. Chị xác nhận giúp tôi được không?”",
+    savedNote:
+      "Ước tính minh hoạ, nếu tính như dịch vụ gắn với hàng hoá: GTGT 3% (Luật 48/2024, Điều 12) + TNCN 1,5% phần trên 500 triệu (Luật 109/2025, Điều 7) · cần kế toán xác nhận",
+    finalTitle: "LexVi. Đúng luật, đúng ngày.",
+    roles:
+      "Yoshio — sản phẩm, giao diện & phim · Tuấn Anh — agent & kiểm chứng · Dũng — dữ liệu & đồ thị luật",
+    honesty:
+      "Câu chuyện dựa trên các quy định năm 2026. Bản demo dùng câu trả lời mẫu dựng từ văn bản chính thức; kết quả kiểm thử lấy từ hệ thống chạy thật. Thông tin tham khảo, không phải tư vấn.",
+    made: "Làm trong Meta Global AI Developer Hackathon, 2026",
+    videoTitle: "Video demo LexVi",
+    videoClose: "Đóng video",
+    videoNote: "Lời thoại tiếng Anh, có phụ đề.",
+    pause: "Tạm dừng",
+    play: "Phát",
+    pauseLoop: "Tạm dừng ảnh động",
+    playLoop: "Phát ảnh động",
+    docTitle: "LexVi — Đúng luật, đúng ngày",
   },
 } as const;

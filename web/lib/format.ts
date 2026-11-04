@@ -61,6 +61,17 @@ export function formatVndWords(amount: number): string {
   return `${plain.format(amount)} đồng`;
 }
 
+const plainEn = new Intl.NumberFormat("en-US", { maximumFractionDigits: 3 });
+
+/** English prose: 700000000 → "700 million VND"; 1000000000 → "1 billion VND". Truncates too. */
+export function formatVndWordsEn(amount: number): string {
+  if (amount >= 1_000_000_000)
+    return `${plainEn.format(Math.floor(amount / 1_000_000) / 1_000)} billion VND`;
+  if (amount >= 1_000_000)
+    return `${plainEn.format(Math.floor(amount / 1_000) / 1_000)} million VND`;
+  return `${plainEn.format(amount)} VND`;
+}
+
 function dayNumber(iso: IsoDate): number {
   const { y, m, d } = parseIso(iso);
   return Date.UTC(y, m - 1, d) / 86_400_000;

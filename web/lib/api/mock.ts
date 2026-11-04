@@ -7,7 +7,7 @@
 // output — the UI labels them as prepared examples (mockBadge / mockFlag).
 // The ingest scenario follows role A's `demo/role_a/expected.json` (Decree 141/2026 replay).
 
-import { compareIso, formatDate, formatVndWords } from "../format";
+import { compareIso, formatDate, formatVndWords, formatVndWordsEn } from "../format";
 import type {
   AskRequest,
   AskResponseMoRong,
@@ -194,8 +194,13 @@ function attempt(lan_thu: number, failAt?: (typeof STEPS)[number], ly_do?: strin
 
 export type MockScenario = "verified" | "unverified";
 
+/** Language of the prepared prose (answers, tasks, reasons). Citations stay verbatim Vietnamese. */
+export type MockLang = "en" | "vi";
+
 export function pickScenario(question: string): MockScenario {
-  return /hoá đơn|hóa đơn|hoa don/i.test(question.normalize("NFC")) ? "unverified" : "verified";
+  return /hoá đơn|hóa đơn|hoa don|invoice/i.test(question.normalize("NFC"))
+    ? "unverified"
+    : "verified";
 }
 
 export const MOCK_SUGGESTIONS = [
@@ -203,8 +208,22 @@ export const MOCK_SUGGESTIONS = [
   "Quán tôi có bắt buộc dùng hoá đơn điện tử từ máy tính tiền không?",
 ] as const;
 
+export const MOCK_SUGGESTIONS_EN = [
+  "My café makes about 700 million VND a year. Do I have to pay tax?",
+  "Do I have to use e-invoices from a cash register?",
+] as const;
+
+export function mockSuggestions(lang: MockLang): readonly string[] {
+  return lang === "en" ? MOCK_SUGGESTIONS_EN : MOCK_SUGGESTIONS;
+}
+
 /** What the mic example "hears" in film / mock mode (the real flow uses Muse Voice Transcribe). */
 export const MOCK_TRANSCRIPT = MOCK_SUGGESTIONS[0];
+export const MOCK_TRANSCRIPT_EN = MOCK_SUGGESTIONS_EN[0];
+
+export function mockTranscript(lang: MockLang): string {
+  return lang === "en" ? MOCK_TRANSCRIPT_EN : MOCK_TRANSCRIPT;
+}
 
 /** Example photo reading for film / mock mode — not a real document (the UI labels it). */
 export const MOCK_PHOTO_READING = {
@@ -216,25 +235,47 @@ export const MOCK_PHOTO_READING = {
   cau_hoi_goi_y: MOCK_SUGGESTIONS[0],
 } as const;
 
+export const MOCK_PHOTO_READING_EN = {
+  la_giay_to_thue: true,
+  loai_giay_to: "Tax notice (example photo)",
+  tom_tat:
+    "Example photo: a notice asking the household business to declare its 2026 revenue to the tax authority.",
+  ngay_tren_giay: "",
+  cau_hoi_goi_y: MOCK_SUGGESTIONS_EN[0],
+} as const;
+
+export function mockPhotoReading(lang: MockLang) {
+  return lang === "en" ? MOCK_PHOTO_READING_EN : MOCK_PHOTO_READING;
+}
+
 const BILLION = 1_000_000_000;
 
 // ── /ask ─────────────────────────────────────────────────────────────────────────────────────
-export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoRong {
+export function mockAsk(
+  req: AskRequest,
+  scenario: MockScenario,
+  lang: MockLang = "vi",
+): AskResponseMoRong {
+  const en = lang === "en";
   const d = req.ngay_ap_dung;
   const rev = req.ho_so.doanh_thu_nam;
-  const revText = formatVndWords(rev);
+  const revText = en ? formatVndWordsEn(rev) : formatVndWords(rev);
   const dateText = formatDate(d);
   const afterNd68 = compareIso(d, VB.nd68.hieu_luc_tu) >= 0;
 
-  if (scenario === "unverified") return einvoice(rev, revText, dateText, afterNd68);
+  if (scenario === "unverified") return einvoice(rev, revText, dateText, afterNd68, en);
 
   // Before 01/01/2026: Circular 40/2021, 100 million.
   if (compareIso(d, "2026-01-01") < 0) {
     const over = rev > 100_000_000;
     return {
-      tra_loi: over
-        ? `Tại ngày ${dateText}, mức doanh thu không phải nộp thuế GTGT và thuế TNCN là từ 100 triệu đồng/năm trở xuống. Doanh thu ${revText} cao hơn mức này, nên quán thuộc diện phải nộp thuế.`
-        : `Tại ngày ${dateText}, doanh thu ${revText} không vượt mức 100 triệu đồng/năm, nên quán không phải nộp thuế GTGT và thuế TNCN.`,
+      tra_loi: en
+        ? over
+          ? `On ${dateText}, revenue of up to 100 million VND a year was exempt from VAT and personal income tax (Circular 40/2021/TT-BTC). Revenue of ${revText} is above this level, so the café has to pay tax.`
+          : `On ${dateText}, revenue of ${revText} does not exceed 100 million VND a year, so the café does not pay VAT or personal income tax (Circular 40/2021/TT-BTC).`
+        : over
+          ? `Tại ngày ${dateText}, mức doanh thu không phải nộp thuế GTGT và thuế TNCN là từ 100 triệu đồng/năm trở xuống. Doanh thu ${revText} cao hơn mức này, nên quán thuộc diện phải nộp thuế.`
+          : `Tại ngày ${dateText}, doanh thu ${revText} không vượt mức 100 triệu đồng/năm, nên quán không phải nộp thuế GTGT và thuế TNCN.`,
       trich_dan: [cite("40-2021-TT-BTC-D4-K2", "Hộ kinh doanh, cá nhân kinh doanh có doanh thu")],
       checklist: [],
       can_xac_nhan: false,
@@ -244,22 +285,27 @@ export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoR
 
   const over = rev > BILLION;
   const retro = compareIso(d, VB.nd141.ngay_ban_hanh) < 0;
-  const retroNote = retro
-    ? " Nghị định 141/2026/NĐ-CP ban hành ngày 29/04/2026 nhưng có hiệu lực từ 01/01/2026, nên mức 01 tỷ đồng áp dụng hồi tố cho ngày này."
-    : "";
+  const retroNote = !retro
+    ? ""
+    : en
+      ? " Decree 141/2026/NĐ-CP was issued on 29/04/2026 but applies from 01/01/2026, so the 1 billion VND threshold applies retroactively to this date."
+      : " Nghị định 141/2026/NĐ-CP ban hành ngày 29/04/2026 nhưng có hiệu lực từ 01/01/2026, nên mức 01 tỷ đồng áp dụng hồi tố cho ngày này.";
   const base = [
     cite("141-2026-ND-CP-D1-K1", "Sửa đổi cụm từ"),
     cite("09-2026-QH16-D2", "Hàng hóa, dịch vụ của hộ"),
     cite("09-2026-QH16-D1", "Cá nhân cư trú"),
     ...(retro ? [cite("141-2026-ND-CP-D3", "Nghị định này có hiệu lực")] : []),
   ];
-  const lead =
-    "Từ 01/01/2026, luật giao Chính phủ quy định mức doanh thu năm không chịu thuế GTGT và không phải nộp thuế TNCN; Nghị định 141/2026/NĐ-CP sửa mức trong Nghị định 68/2026/NĐ-CP từ “500 triệu đồng” thành “01 tỷ đồng”.";
+  const lead = en
+    ? "From 01/01/2026, the law lets the Government set the annual revenue level below which a household business pays no VAT and no personal income tax; Decree 141/2026/NĐ-CP changes that level in Decree 68/2026/NĐ-CP from “500 million VND” to “1 billion VND”."
+    : "Từ 01/01/2026, luật giao Chính phủ quy định mức doanh thu năm không chịu thuế GTGT và không phải nộp thuế TNCN; Nghị định 141/2026/NĐ-CP sửa mức trong Nghị định 68/2026/NĐ-CP từ “500 triệu đồng” thành “01 tỷ đồng”.";
 
   // 01/01–04/03/2026: Decree 68 itself starts on 05/03/2026 — say so and ask for confirmation.
   if (!afterNd68) {
     return {
-      tra_loi: `${lead} Nghị định 68/2026/NĐ-CP có hiệu lực từ 05/03/2026, nên cách áp dụng mức này cho ngày ${dateText} cần kế toán hoặc cơ quan thuế xác nhận.${retroNote}`,
+      tra_loi: en
+        ? `${lead} Decree 68/2026/NĐ-CP takes effect on 05/03/2026, so how this level applies on ${dateText} needs confirmation from an accountant or the tax authority.${retroNote}`
+        : `${lead} Nghị định 68/2026/NĐ-CP có hiệu lực từ 05/03/2026, nên cách áp dụng mức này cho ngày ${dateText} cần kế toán hoặc cơ quan thuế xác nhận.${retroNote}`,
       trich_dan: base,
       checklist: [],
       can_xac_nhan: true,
@@ -267,7 +313,9 @@ export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoR
         attempt(
           1,
           "con_hieu_luc",
-          `Trích dẫn 1 (68-2026-ND-CP-D3-K1): chưa có hiệu lực tại ngày ${dateText} (Nghị định 68/2026/NĐ-CP có hiệu lực từ 05/03/2026).`,
+          en
+            ? `Citation 1 (68-2026-ND-CP-D3-K1): not yet in force on ${dateText} (Decree 68/2026/NĐ-CP takes effect on 05/03/2026).`
+            : `Trích dẫn 1 (68-2026-ND-CP-D3-K1): chưa có hiệu lực tại ngày ${dateText} (Nghị định 68/2026/NĐ-CP có hiệu lực từ 05/03/2026).`,
         ),
         attempt(2),
       ],
@@ -276,9 +324,13 @@ export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoR
 
   const year = Number(d.slice(0, 4));
   return {
-    tra_loi: over
-      ? `${lead} Doanh thu ${revText} của quán cao hơn mức 01 tỷ đồng, nên quán khai thuế, nộp thuế theo quy định.${retroNote}`
-      : `${lead} Doanh thu ${revText} của quán không vượt mức 01 tỷ đồng, nên quán không phải nộp thuế GTGT và thuế TNCN, nhưng vẫn phải thông báo doanh thu thực tế với cơ quan thuế.${retroNote}`,
+    tra_loi: en
+      ? over
+        ? `${lead} The café's revenue of ${revText} is above 1 billion VND, so the café declares and pays tax as required.${retroNote}`
+        : `${lead} The café's revenue of ${revText} does not exceed 1 billion VND, so the café does not pay VAT or personal income tax, but it must still report its actual revenue to the tax authority.${retroNote}`
+      : over
+        ? `${lead} Doanh thu ${revText} của quán cao hơn mức 01 tỷ đồng, nên quán khai thuế, nộp thuế theo quy định.${retroNote}`
+        : `${lead} Doanh thu ${revText} của quán không vượt mức 01 tỷ đồng, nên quán không phải nộp thuế GTGT và thuế TNCN, nhưng vẫn phải thông báo doanh thu thực tế với cơ quan thuế.${retroNote}`,
     trich_dan: over
       ? base
       : [
@@ -290,12 +342,16 @@ export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoR
       ? []
       : [
           {
-            viec: `Thông báo doanh thu thực tế năm ${year} với cơ quan thuế`,
+            viec: en
+              ? `Report the actual revenue for ${year} to the tax authority`
+              : `Thông báo doanh thu thực tế năm ${year} với cơ quan thuế`,
             han: `${year + 1}-01-31`,
             can_cu: "68-2026-ND-CP-D8-K1",
           },
           {
-            viec: "Đối chiếu các khoản GTGT, TNCN đã kê khai, nộp trong năm 2026 để xử lý số thuế đã nộp — cần kế toán xác nhận",
+            viec: en
+              ? "Check the VAT and personal income tax declared and paid in 2026 to settle any tax already paid — needs accountant confirmation"
+              : "Đối chiếu các khoản GTGT, TNCN đã kê khai, nộp trong năm 2026 để xử lý số thuế đã nộp — cần kế toán xác nhận",
             han: "",
             can_cu: "141-2026-ND-CP-D4-K1",
           },
@@ -305,7 +361,9 @@ export function mockAsk(req: AskRequest, scenario: MockScenario): AskResponseMoR
       attempt(
         1,
         "con_hieu_luc",
-        `Trích dẫn 1 (68-2026-ND-CP-D3-K1): không áp dụng ngày ${dateText}: đã bị sửa đổi bởi 141-2026-ND-CP-D1-K1 (từ 01/01/2026). Tìm điều khoản đang áp dụng.`,
+        en
+          ? `Citation 1 (68-2026-ND-CP-D3-K1): does not apply on ${dateText}: amended by 141-2026-ND-CP-D1-K1 (from 01/01/2026). Look for the provision that applies.`
+          : `Trích dẫn 1 (68-2026-ND-CP-D3-K1): không áp dụng ngày ${dateText}: đã bị sửa đổi bởi 141-2026-ND-CP-D1-K1 (từ 01/01/2026). Tìm điều khoản đang áp dụng.`,
       ),
       attempt(2),
     ],
@@ -317,16 +375,28 @@ function einvoice(
   revText: string,
   dateText: string,
   afterNd68: boolean,
+  en: boolean,
 ): AskResponseMoRong {
   const mustUse = afterNd68 ? rev > BILLION : rev >= BILLION;
-  const rule = afterNd68
-    ? "từ 01/01/2026, hộ kinh doanh có doanh thu năm trên 01 tỷ đồng phải dùng hoá đơn điện tử có mã của cơ quan thuế hoặc khởi tạo từ máy tính tiền"
-    : `tại ngày ${dateText}, hộ kinh doanh có doanh thu hằng năm từ 01 tỷ đồng trở lên dùng hoá đơn điện tử khởi tạo từ máy tính tiền`;
   const basis = afterNd68 ? "141-2026-ND-CP-D1-K2" : "70-2025-ND-CP-D1-K8";
-  return {
-    tra_loi: mustUse
+  let tra_loi: string;
+  if (en) {
+    const rule = afterNd68
+      ? "from 01/01/2026, a household business with annual revenue above 1 billion VND must use e-invoices coded by the tax authority or generated from a cash register (Decree 141/2026/NĐ-CP)"
+      : `on ${dateText}, a household business with annual revenue of 1 billion VND or more uses e-invoices generated from a cash register (Decree 70/2025/NĐ-CP)`;
+    tra_loi = mustUse
+      ? `According to the regulations, ${rule}. With revenue of ${revText} a year, the café falls under this rule. The texts word the case of exactly 1 billion VND differently, so an accountant needs to confirm.`
+      : `According to the regulations, ${rule}. With revenue of ${revText} a year, the café is not yet required to use them and may register to use them if it wishes. The texts word the case of exactly 1 billion VND differently, so an accountant needs to confirm.`;
+  } else {
+    const rule = afterNd68
+      ? "từ 01/01/2026, hộ kinh doanh có doanh thu năm trên 01 tỷ đồng phải dùng hoá đơn điện tử có mã của cơ quan thuế hoặc khởi tạo từ máy tính tiền"
+      : `tại ngày ${dateText}, hộ kinh doanh có doanh thu hằng năm từ 01 tỷ đồng trở lên dùng hoá đơn điện tử khởi tạo từ máy tính tiền`;
+    tra_loi = mustUse
       ? `Theo văn bản, ${rule}. Với doanh thu ${revText}/năm, quán thuộc diện này. Cách hiểu ở đúng mức 01 tỷ đồng khác nhau giữa các văn bản, nên cần kế toán xác nhận.`
-      : `Theo văn bản, ${rule}. Với doanh thu ${revText}/năm, quán chưa thuộc diện bắt buộc và có thể đăng ký dùng nếu có nhu cầu. Cách hiểu ở đúng mức 01 tỷ đồng khác nhau giữa các văn bản, nên cần kế toán xác nhận.`,
+      : `Theo văn bản, ${rule}. Với doanh thu ${revText}/năm, quán chưa thuộc diện bắt buộc và có thể đăng ký dùng nếu có nhu cầu. Cách hiểu ở đúng mức 01 tỷ đồng khác nhau giữa các văn bản, nên cần kế toán xác nhận.`;
+  }
+  return {
+    tra_loi,
     trich_dan: afterNd68
       ? [
           cite(
@@ -348,7 +418,9 @@ function einvoice(
         ],
     checklist: [
       {
-        viec: "Hỏi kế toán về nghĩa vụ hoá đơn điện tử khi doanh thu gần mức 01 tỷ đồng",
+        viec: en
+          ? "Ask an accountant about the e-invoice obligation when revenue is close to 1 billion VND"
+          : "Hỏi kế toán về nghĩa vụ hoá đơn điện tử khi doanh thu gần mức 01 tỷ đồng",
         han: "",
         can_cu: basis,
       },
@@ -358,15 +430,27 @@ function einvoice(
       attempt(
         1,
         "con_hieu_luc",
-        afterNd68
-          ? `Trích dẫn 2 (68-2026-ND-CP-D8-K5): không áp dụng ngày ${dateText}: đã bị sửa đổi bởi 141-2026-ND-CP-D1-K2.`
-          : `Trích dẫn 1 (68-2026-ND-CP-D8-K5): chưa có hiệu lực tại ngày ${dateText}.`,
+        en
+          ? afterNd68
+            ? `Citation 2 (68-2026-ND-CP-D8-K5): does not apply on ${dateText}: amended by 141-2026-ND-CP-D1-K2.`
+            : `Citation 1 (68-2026-ND-CP-D8-K5): not yet in force on ${dateText}.`
+          : afterNd68
+            ? `Trích dẫn 2 (68-2026-ND-CP-D8-K5): không áp dụng ngày ${dateText}: đã bị sửa đổi bởi 141-2026-ND-CP-D1-K2.`
+            : `Trích dẫn 1 (68-2026-ND-CP-D8-K5): chưa có hiệu lực tại ngày ${dateText}.`,
       ),
-      attempt(2, "khop_nguyen_van", "Trích dẫn 1: câu trích không có nguyên văn ở trang đã dẫn."),
+      attempt(
+        2,
+        "khop_nguyen_van",
+        en
+          ? "Citation 1: the quoted sentence does not appear verbatim on the cited page."
+          : "Trích dẫn 1: câu trích không có nguyên văn ở trang đã dẫn.",
+      ),
       attempt(
         3,
         "mo_hinh_danh_gia",
-        "Nhận định về trường hợp doanh thu đúng 01 tỷ đồng chưa có căn cứ rõ: “từ 01 tỷ đồng trở lên” (Nghị định 70/2025) khác “trên 01 tỷ đồng” (Nghị định 141/2026).",
+        en
+          ? "The claim about revenue of exactly 1 billion VND has no clear basis: “từ 01 tỷ đồng trở lên” (1 billion VND or more, Decree 70/2025/NĐ-CP) differs from “trên 01 tỷ đồng” (above 1 billion VND, Decree 141/2026/NĐ-CP)."
+          : "Nhận định về trường hợp doanh thu đúng 01 tỷ đồng chưa có căn cứ rõ: “từ 01 tỷ đồng trở lên” (Nghị định 70/2025) khác “trên 01 tỷ đồng” (Nghị định 141/2026).",
       ),
     ],
   };
@@ -381,16 +465,23 @@ export function mockDetail(id: string): ChiTietDieuKhoan | null {
 // held Decree 68/2026. Excerpts are verbatim from 141; the old texts are verbatim from 68.
 const strip = (s: string) => s.replace(/^\d+\.\s*/, "");
 
-export function mockIngest(hoSo: HoSo): IngestResponse {
+export function mockIngest(hoSo: HoSo, lang: MockLang = "vi"): IngestResponse {
+  const en = lang === "en";
   const rev = hoSo.doanh_thu_nam;
-  const revText = formatVndWords(rev);
+  const revText = en ? formatVndWordsEn(rev) : formatVndWords(rev);
   const between = rev > 500_000_000 && rev <= BILLION;
   const phrase = strip(prov("141-2026-ND-CP-D1-K1").noi_dung);
-  const why = between
-    ? `Mức “500 triệu đồng” trong khoản này được sửa thành “01 tỷ đồng”, áp dụng từ 01/01/2026. Doanh thu ${revText} của quán nằm giữa hai mức, nên thay đổi này ảnh hưởng tới quán.`
-    : rev <= 500_000_000
-      ? `Mức “500 triệu đồng” được sửa thành “01 tỷ đồng”. Doanh thu ${revText} của quán đã dưới mức cũ, nên kết quả cho quán không đổi.`
-      : `Mức “500 triệu đồng” được sửa thành “01 tỷ đồng”. Doanh thu ${revText} của quán vẫn cao hơn mức mới.`;
+  const why = en
+    ? between
+      ? `The “500 million VND” level in this clause is changed to “1 billion VND”, applying from 01/01/2026. The café's revenue of ${revText} lies between the two levels, so this change affects the café.`
+      : rev <= 500_000_000
+        ? `The “500 million VND” level is changed to “1 billion VND”. The café's revenue of ${revText} was already below the old level, so the outcome for the café does not change.`
+        : `The “500 million VND” level is changed to “1 billion VND”. The café's revenue of ${revText} is still above the new level.`
+    : between
+      ? `Mức “500 triệu đồng” trong khoản này được sửa thành “01 tỷ đồng”, áp dụng từ 01/01/2026. Doanh thu ${revText} của quán nằm giữa hai mức, nên thay đổi này ảnh hưởng tới quán.`
+      : rev <= 500_000_000
+        ? `Mức “500 triệu đồng” được sửa thành “01 tỷ đồng”. Doanh thu ${revText} của quán đã dưới mức cũ, nên kết quả cho quán không đổi.`
+        : `Mức “500 triệu đồng” được sửa thành “01 tỷ đồng”. Doanh thu ${revText} của quán vẫn cao hơn mức mới.`;
   const row = (target: string) => ({
     trich_doan: phrase,
     loai: "sua_doi" as const,
@@ -410,9 +501,13 @@ export function mockIngest(hoSo: HoSo): IngestResponse {
     loai: "sua_doi" as const,
     dieu_bi_tac_dong: "68-2026-ND-CP-D8-K5",
     anh_huong_toi_ho_so: exactlyBillion,
-    giai_thich: exactlyBillion
-      ? "Mức bắt buộc dùng hoá đơn điện tử đổi từ “từ 01 tỷ đồng trở lên” thành “trên 01 tỷ đồng”; doanh thu đúng 01 tỷ đồng không còn thuộc diện bắt buộc."
-      : `Mức bắt buộc dùng hoá đơn điện tử đổi từ “từ 01 tỷ đồng trở lên” thành “trên 01 tỷ đồng”. Với doanh thu ${revText}, nghĩa vụ của quán không đổi.`,
+    giai_thich: en
+      ? exactlyBillion
+        ? "The level at which e-invoices are mandatory changes from “1 billion VND or more” to “above 1 billion VND”; revenue of exactly 1 billion VND is no longer required to use them."
+        : `The level at which e-invoices are mandatory changes from “1 billion VND or more” to “above 1 billion VND”. With revenue of ${revText}, the café's obligation does not change.`
+      : exactlyBillion
+        ? "Mức bắt buộc dùng hoá đơn điện tử đổi từ “từ 01 tỷ đồng trở lên” thành “trên 01 tỷ đồng”; doanh thu đúng 01 tỷ đồng không còn thuộc diện bắt buộc."
+        : `Mức bắt buộc dùng hoá đơn điện tử đổi từ “từ 01 tỷ đồng trở lên” thành “trên 01 tỷ đồng”. Với doanh thu ${revText}, nghĩa vụ của quán không đổi.`,
     viec_can_lam: "",
     han: "",
     dieu_cu: {
@@ -439,7 +534,10 @@ export function mockIngest(hoSo: HoSo): IngestResponse {
       ? [
           {
             // Verbatim from role A's expected.json (viec_goi_y); no deadline is stated in the text.
-            viec: "Đối chiếu doanh thu năm và các khoản GTGT/TNCN đã kê khai, nộp để kiểm tra xử lý số thuế nộp thừa theo Điều 4 khoản 1 Nghị định 141 và Điều 12 Nghị định 68.",
+            // The English line is a translation of it.
+            viec: en
+              ? "Check annual revenue and the VAT/personal income tax declared and paid, to see whether overpaid tax should be settled under Article 4(1) of Decree 141/2026/NĐ-CP and Article 12 of Decree 68/2026/NĐ-CP."
+              : "Đối chiếu doanh thu năm và các khoản GTGT/TNCN đã kê khai, nộp để kiểm tra xử lý số thuế nộp thừa theo Điều 4 khoản 1 Nghị định 141 và Điều 12 Nghị định 68.",
             han: "",
             can_cu: "141-2026-ND-CP-D4-K1",
             trich_doan: strip(prov("141-2026-ND-CP-D4-K1").noi_dung),

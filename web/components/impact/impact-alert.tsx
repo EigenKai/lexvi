@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
-import { useT } from "@/components/providers";
+import { useLocale, useT } from "@/components/providers";
+import { usingMock } from "@/lib/api/client";
 import type { DieuBiAnhHuong, IngestResponse, IsoDate, LoaiThayDoi } from "@/lib/api/contract";
 import { formatDate, isIsoDate } from "@/lib/format";
 import { isRetroactive } from "@/lib/legal-status";
@@ -54,6 +55,8 @@ function OldText({ text, delayMs }: { text: string; delayMs: number }) {
 
 function ImpactRow({ row, index }: { row: DieuBiAnhHuong; index: number }) {
   const t = useT();
+  const { locale } = useLocale();
+  const proseLang = usingMock && locale === "en" ? "en" : "vi";
   const rel = RELATION_STYLE[row.loai];
   const RelIcon = rel.icon;
   return (
@@ -106,7 +109,7 @@ function ImpactRow({ row, index }: { row: DieuBiAnhHuong; index: number }) {
       </div>
 
       {row.giai_thich && (
-        <p lang="vi" className="text-[0.9375rem] leading-[1.6] text-ink-2">
+        <p lang={proseLang} className="text-[0.9375rem] leading-[1.6] text-ink-2">
           {row.giai_thich}
         </p>
       )}

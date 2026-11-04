@@ -8,7 +8,14 @@ import type {
   IngestResponse,
   ThayDoi,
 } from "./contract";
-import { type MockScenario, mockAsk, mockDetail, mockIngest, pickScenario } from "./mock";
+import {
+  type MockLang,
+  type MockScenario,
+  mockAsk,
+  mockDetail,
+  mockIngest,
+  pickScenario,
+} from "./mock";
 import { isObj, str } from "./util";
 
 /**
@@ -26,6 +33,8 @@ export const usingMock = API_URL === null;
 export interface ClientOptions {
   latencyMs: number;
   scenario: MockScenario | null;
+  /** Language of the prepared (mock) prose; the real API ignores it. Default "vi". */
+  lang?: MockLang;
   signal?: AbortSignal;
 }
 
@@ -106,7 +115,7 @@ export async function ask(req: AskRequest, opts: ClientOptions): Promise<AskResu
     return adaptAsk(raw, run);
   }
   await wait(opts.latencyMs, opts.signal);
-  const response = mockAsk(req, opts.scenario ?? pickScenario(req.cau_hoi));
+  const response = mockAsk(req, opts.scenario ?? pickScenario(req.cau_hoi), opts.lang);
   return mockResult(response, mockDetail, req.ngay_ap_dung);
 }
 
@@ -180,7 +189,7 @@ export function parseIngestResponse(raw: unknown): IngestResponse {
 export async function ingest(
   file: File | null,
   hoSo: HoSo,
-  opts: { latencyMs: number; signal?: AbortSignal },
+  opts: { latencyMs: number; signal?: AbortSignal; lang?: MockLang },
 ): Promise<IngestResponse> {
   if (API_URL) {
     if (!file) throw new ApiError("needs-file");
@@ -214,7 +223,7 @@ export async function ingest(
     return parseIngestResponse(raw);
   }
   await wait(opts.latencyMs, opts.signal);
-  return mockIngest(hoSo);
+  return mockIngest(hoSo, opts.lang);
 }
 
 /* ── Voice and photo input (Next.js routes in this app; key stays server-side) ─────────────── */

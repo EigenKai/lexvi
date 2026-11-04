@@ -21,10 +21,12 @@ export function LangToggle({ film = "lang-toggle" }: { film?: string }) {
             type="button"
             lang={l}
             aria-pressed={locale === l}
-            aria-label={l === "en" ? t.lang.enName : t.lang.viName}
+            aria-label={
+              l === "en" ? `${t.lang.en} · ${t.lang.enName}` : `${t.lang.vi} · ${t.lang.viName}`
+            }
             onClick={() => setLocale(l)}
             className={cn(
-              "inline-flex min-h-10 min-w-11 items-center justify-center rounded-sm px-2 font-mono text-xs font-medium transition-colors",
+              "inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm px-2 font-mono text-xs font-medium transition-colors",
               locale === l ? "bg-brand text-white" : "text-ink-2 hover:bg-surface-sunk",
             )}
           >

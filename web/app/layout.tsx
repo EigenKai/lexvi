@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Providers } from "@/components/providers";
-import { AppShell } from "@/components/shell/app-shell";
 import { display, mono, sans, serif } from "./fonts";
 import "./globals.css";
 
@@ -21,9 +20,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${sans.variable} ${mono.variable} ${serif.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-paper text-ink">
-        <Providers>
-          <AppShell>{children}</AppShell>
-        </Providers>
+        {/* The landing page (app/(site)) and the app screens (app/(app), with AppShell) share this. */}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

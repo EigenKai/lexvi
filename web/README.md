@@ -19,7 +19,10 @@ the other team members.
 
 ## Screens
 
-- **Ask** (`/`): question, business profile and applied date → answer with verified citations, the amendment
+- **Landing** (`/`): the story of one café owner's morning as a scroll page (the same story as the demo film),
+  with two buttons: **Watch the demo** (plays the film, self-hosted 720p copy in `public/demo/`) and **Try the
+  demo** (opens the Ask screen). It uses UI recordings of the mock build (prepared example responses, `public/landing/`) and the real benchmark rows.
+- **Ask** (`/hoi-dap`): question, business profile and applied date → answer with verified citations, the amendment
   chain and a checklist.
 - **New regulation affecting you** (`/canh-bao`): drop a new legal PDF → `POST /ingest` → the articles it
   changes (old text → new text), whether each affects this business, tasks, and changes dropped by verification.
@@ -55,7 +58,8 @@ cd web && pnpm benchmark:import   # copies the newest run into lib/benchmark/res
 ```
 
 The UI opens in **English**; the EN | VI toggle switches to Vietnamese (`?lang=vi` in the URL also works).
-Legal text, quotes and answers stay in Vietnamese, the language of the source law.
+Quoted legal text stays in Vietnamese, the language of the source law. In English the prepared example answers
+are English prose; live answers come from the backend in Vietnamese.
 
 ## Built during the hackathon
 

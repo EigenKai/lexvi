@@ -10,7 +10,7 @@ import { DisclaimerBar } from "./disclaimer-bar";
 import { LangToggle } from "./lang-toggle";
 
 const NAV: { href: string; key: "ask" | "alerts" | "profile" | "benchmark"; icon: LucideIcon }[] = [
-  { href: "/", key: "ask", icon: MessageSquareText },
+  { href: "/hoi-dap", key: "ask", icon: MessageSquareText },
   { href: "/canh-bao", key: "alerts", icon: Bell },
   { href: "/ho-so", key: "profile", icon: UserRound },
   { href: "/kiem-thu", key: "benchmark", icon: FlaskConical },
@@ -76,7 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link
           href="/"
           className="inline-flex min-h-11 items-center rounded-md px-2"
-          aria-label={`${t.brand} — ${t.nav.ask}`}
+          aria-label={`${t.brand} — ${t.nav.home}`}
         >
           <Logo />
         </Link>
@@ -91,7 +91,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Link
                     href={href}
                     aria-current={active ? "page" : undefined}
-                    data-film={`nav-${href === "/" ? "ask" : href.slice(1)}`}
+                    data-film={`nav-${key === "ask" ? "ask" : href.slice(1)}`}
                     className={cn(
                       "flex min-h-11 items-center gap-3 rounded-md px-3 text-[0.9375rem] font-medium transition-colors",
                       active
@@ -118,7 +118,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link
             href="/"
             className="inline-flex min-h-11 items-center rounded-md"
-            aria-label={`${t.brand} — ${t.nav.ask}`}
+            aria-label={`${t.brand} — ${t.nav.home}`}
           >
             <Logo />
           </Link>
@@ -144,7 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <Link
                       href={href}
                       aria-current={active ? "page" : undefined}
-                      data-film={`nav-mobile-${href === "/" ? "ask" : href.slice(1)}`}
+                      data-film={`nav-mobile-${key === "ask" ? "ask" : href.slice(1)}`}
                       className={cn(
                         "flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium",
                         active ? "text-brand" : "text-ink-3",

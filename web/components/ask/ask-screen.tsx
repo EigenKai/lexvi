@@ -3,11 +3,11 @@
 import { Loader2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useProfile, useT } from "@/components/providers";
+import { useLocale, useProfile, useT } from "@/components/providers";
 import { MockBanner } from "@/components/shell/mock-banner";
-import { ask } from "@/lib/api/client";
+import { ApiError, ask } from "@/lib/api/client";
 import type { AskResponseMoRong, HoSo, IsoDate, RunMeta } from "@/lib/api/contract";
-import { MOCK_SUGGESTIONS } from "@/lib/api/mock";
+import { mockSuggestions } from "@/lib/api/mock";
 import { type FilmConfig, readFilmConfig } from "@/lib/film";
 import { citableInAnswer } from "@/lib/legal-status";
 import { presence, presenceReduced } from "@/lib/motion";
@@ -36,6 +36,7 @@ interface Result {
 
 export function AskScreen() {
   const t = useT();
+  const { locale } = useLocale();
   const [film] = useState<FilmConfig>(() => readFilmConfig(window.location.search));
   const reduced = useReducedMotion();
 
@@ -46,7 +47,7 @@ export function AskScreen() {
   const [result, setResult] = useState<Result | null>(null);
   const [lastAsked, setLastAsked] = useState<string | null>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [errorKind, setErrorKind] = useState<"failed" | "timeout">("failed");
+  const [errorKind, setErrorKind] = useState<"failed" | "timeout" | "length">("failed");
   const [profileOpen, setProfileOpen] = useState(false);
 
   const abort = useRef<AbortController | null>(null);
@@ -82,7 +83,7 @@ export function AskScreen() {
       try {
         const { response, views, meta } = await ask(
           { cau_hoi: q, ngay_ap_dung: date, ho_so: profile },
-          { latencyMs: film.latencyMs, scenario: film.scenario, signal: ctrl.signal },
+          { latencyMs: film.latencyMs, scenario: film.scenario, lang: locale, signal: ctrl.signal },
         );
         // views[i] belongs to trich_dan[i]: one provision may be cited twice with different quotes.
         const citations: ResolvedCitation[] = response.trich_dan.map((trich, i) => {
@@ -115,11 +116,17 @@ export function AskScreen() {
           setPhase((p) => (p === "searching" ? "idle" : p));
           return;
         }
-        setErrorKind(name === "TimeoutError" ? "timeout" : "failed");
+        setErrorKind(
+          name === "TimeoutError"
+            ? "timeout"
+            : err instanceof ApiError && err.status === 422
+              ? "length"
+              : "failed",
+        );
         setPhase("error");
       }
     },
-    [film.latencyMs, film.scenario],
+    [film.latencyMs, film.scenario, locale],
   );
 
   const submit = () => {
@@ -158,7 +165,12 @@ export function AskScreen() {
   const onRibbonDone = useCallback(() => setPhase((p) => (p === "verifying" ? "done" : p)), []);
 
   const open = openIndex === null ? null : (result?.citations[openIndex] ?? null);
-  const errorText = errorKind === "timeout" ? t.ask.errTimeout : t.ask.error;
+  const errorText =
+    errorKind === "timeout"
+      ? t.ask.errTimeout
+      : errorKind === "length"
+        ? t.ask.errLength
+        : t.ask.error;
   const variants = reduced ? presenceReduced : presence;
 
   return (
@@ -203,7 +215,7 @@ export function AskScreen() {
           <section aria-label={t.ask.suggestions} className="flex flex-col gap-2">
             <h2 className="text-sm font-semibold text-ink-2">{t.ask.suggestions}</h2>
             <ul className="flex flex-col gap-2">
-              {MOCK_SUGGESTIONS.map((s, i) => (
+              {mockSuggestions(locale).map((s, i) => (
                 <li key={s}>
                   <button
                     type="button"

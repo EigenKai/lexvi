@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useProfile, useT } from "@/components/providers";
+import { useLocale, useProfile, useT } from "@/components/providers";
 import { MockBanner } from "@/components/shell/mock-banner";
 import { ApiError, ingest } from "@/lib/api/client";
 import type { HoSo, IngestResponse } from "@/lib/api/contract";
@@ -21,6 +21,7 @@ const SAMPLE_NAME = "van-ban-moi-141-2026.pdf";
 /** "Văn bản mới ảnh hưởng tới bạn" — the /ingest flow (DESIGN.md §11.2). */
 export function ImpactScreen() {
   const t = useT();
+  const { locale } = useLocale();
   const reduced = useReducedMotion();
   const [film] = useState<FilmConfig>(() => readFilmConfig(window.location.search));
   const { hoSo, setHoSo } = useProfile();
@@ -55,6 +56,7 @@ export function ImpactScreen() {
         const res = await ingest(file, profile, {
           latencyMs: film.latencyMs * 2.5,
           signal: ctrl.signal,
+          lang: locale,
         });
         if (ctrl.signal.aborted) return;
         setResult(res);
@@ -73,12 +75,16 @@ export function ImpactScreen() {
             ? t.impact.errNeedFile
             : err instanceof ApiError && err.status === 413
               ? t.impact.errTooBig
-              : t.impact.errFailed,
+              : err instanceof ApiError && err.status === 422
+                ? t.impact.errScanned
+                : err instanceof ApiError && err.status === 400
+                  ? t.impact.errBadPdf
+                  : t.impact.errFailed,
         );
         setPhase("error");
       }
     },
-    [film.latencyMs, t],
+    [film.latencyMs, locale, t],
   );
 
   /** The sample: Decree 141/2026 from public/demo, sent as a real PDF in both modes. */

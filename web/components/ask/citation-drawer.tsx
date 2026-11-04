@@ -12,6 +12,7 @@ import {
   type LucideIcon,
   Quote,
 } from "lucide-react";
+import { useState } from "react";
 import { useT } from "@/components/providers";
 import { usingMock } from "@/lib/api/client";
 import type { CitationView, IsoDate, LanKiemChung, LoaiQuanHe, QuanHe } from "@/lib/api/contract";
@@ -79,19 +80,25 @@ function RelationGroup({
   applied,
   outgoing = false,
   film,
+  limit = Number.POSITIVE_INFINITY,
 }: {
   title: string;
   relations: QuanHe[];
   applied: IsoDate;
   outgoing?: boolean;
   film: string;
+  /** Show this many at first; the rest behind a "show all" button. */
+  limit?: number;
 }) {
   const t = useT();
+  const [all, setAll] = useState(false);
+  const shown = all ? relations : relations.slice(0, limit);
+  const scopes: Record<string, string> = t.drawer.scope;
   return (
     <div className="flex flex-col gap-2">
       <h4 className="text-xs font-semibold text-ink-3">{title}</h4>
       <ul data-film={film} className="flex flex-col gap-2">
-        {relations.map((r, i) => {
+        {shown.map((r, i) => {
           const s = REL_STYLE[r.loai];
           const Icon = s.icon;
           const known = ISO.test(r.hieu_luc_tu);
@@ -128,15 +135,27 @@ function RelationGroup({
                 <span className="text-xs text-ink-3">· {t.drawer.retroOnly}</span>
               )}
               {!applies && <span className="text-xs text-ink-3">· {t.drawer.relPending}</span>}
-              {r.pham_vi && (
-                <span lang="vi" className="basis-full text-xs text-ink-2">
-                  {r.pham_vi}
-                </span>
-              )}
+              {r.pham_vi &&
+                (scopes[r.pham_vi] ? (
+                  <span className="basis-full text-xs text-ink-2">{scopes[r.pham_vi]}</span>
+                ) : (
+                  <span lang="vi" className="basis-full text-xs text-ink-2">
+                    {r.pham_vi}
+                  </span>
+                ))}
             </li>
           );
         })}
       </ul>
+      {relations.length > limit && (
+        <button
+          type="button"
+          onClick={() => setAll((v) => !v)}
+          className="min-h-11 self-start rounded-md px-2 text-sm font-medium text-brand underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-brand"
+        >
+          {all ? t.drawer.showLess : t.drawer.showAll(relations.length)}
+        </button>
+      )}
     </div>
   );
 }
@@ -161,7 +180,10 @@ function RelationList({
     ...(view.dan_chieu ?? []),
   ]);
   const amends = dedupe(view.sua_doi_toi ?? []);
-  if (amendedBy.length + referredBy.length + amends.length === 0)
+  // A provision that amends this one may also refer to it; list it once, as an amendment.
+  const amenders = new Set(amendedBy.map((r) => r.tu_id));
+  const referredOnly = referredBy.filter((r) => !amenders.has(r.tu_id));
+  if (amendedBy.length + referredOnly.length + amends.length === 0)
     return <p className="text-sm text-ink-3">{t.drawer.noRelations}</p>;
   return (
     <div data-film="relation-list" className="flex flex-col gap-4">
@@ -182,12 +204,13 @@ function RelationList({
           film="relation-amends"
         />
       )}
-      {referredBy.length > 0 && (
+      {referredOnly.length > 0 && (
         <RelationGroup
           title={t.drawer.referredBy}
-          relations={referredBy}
+          relations={referredOnly}
           applied={applied}
           film="relation-referred-by"
+          limit={5}
         />
       )}
     </div>

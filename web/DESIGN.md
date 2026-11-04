@@ -407,7 +407,7 @@ the GPU cost is paid once at build time, not on every visitor's phone. LexVi doe
    exist for the demo (`/ingest`).*
 3. **Benchmark (Kiểm thử)** — stage-styled BenchmarkPanel, LexVi vs plain RAG counts with N. *Needed for the
    video's numbers scene.*
-4. **Landing / problem (stage)** — hero with the pre-rendered amendment-graph loop (§10.4), 3–4 sourced StatCards
+4. **Landing (`/`, built 04/11/2026 as a scroll story; see `components/landing/`)** — originally planned as: **Landing / problem (stage)** — hero with the pre-rendered amendment-graph loop (§10.4), 3–4 sourced StatCards
    with Odometer numerals, one-line product claim, "Thử ngay" CTA. *Nice to have; also the video's opening.*
 5. **Profile (Hồ sơ)** — edit `ho_so`. Can be the ProfileSheet only.
 
@@ -463,7 +463,7 @@ same frames on every take.
   `&scenario=verified|unverified` force a mock scenario, `&autoplay=1` submit after ~0.8 s (on `/canh-bao`: send the
   sample PDF `public/demo/van-ban-moi-141-2026.pdf` — the same file in mock and API mode), `&pace=2` slow the
   VerificationRibbon (0.5–4×) so the checks read on camera. Example:
-  `/?film=1&autoplay=1&q=Quán cà phê của tôi doanh thu khoảng 800 triệu một năm thì có phải nộp thuế không?&pace=2`
+  `/hoi-dap?film=1&autoplay=1&q=Quán cà phê của tôi doanh thu khoảng 700 triệu một năm thì có phải nộp thuế không?&pace=2`
 - **Language:** the UI opens in **English by default** (decided 3/11 so judges can read it); `?lang=vi|en` forces a
   language, and `?film=1` ignores the viewer's saved choice so takes stay identical. Legal text, quotes, answers
   and tasks stay Vietnamese (the source language); in English a one-line note says so. Strings live in

@@ -2,7 +2,8 @@
 
 import { UserCheck } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
-import { useT } from "@/components/providers";
+import { useLocale, useT } from "@/components/providers";
+import { usingMock } from "@/lib/api/client";
 import type { AskResponseMoRong, IsoDate } from "@/lib/api/contract";
 import { formatDate } from "@/lib/format";
 import { presence, presenceReduced } from "@/lib/motion";
@@ -26,6 +27,9 @@ export function AnswerCard({
   onOpenCitation: (index: number) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  // Prepared examples are written in the UI language; live answers are Vietnamese.
+  const proseLang = usingMock && locale === "en" ? "en" : "vi";
   const reduced = useReducedMotion();
   const variants = reduced ? presenceReduced : presence;
 
@@ -61,7 +65,7 @@ export function AnswerCard({
         </span>
       </header>
 
-      <p lang="vi" className="mt-4 text-[1.125rem] leading-[1.6] text-ink">
+      <p lang={proseLang} className="mt-4 text-[1.125rem] leading-[1.6] text-ink">
         {response.tra_loi}
       </p>
       {t.sourceNote && <p className="mt-1 text-xs text-ink-3">{t.sourceNote}</p>}

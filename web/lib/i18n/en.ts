@@ -10,6 +10,7 @@ export const en: Dict = {
   tagline: "Tax lookup with citations",
 
   nav: {
+    home: "Home",
     ask: "Ask",
     alerts: "Alerts",
     profile: "Profile",
@@ -31,9 +32,11 @@ export const en: Dict = {
       "Reference information with citations — confirm with an accountant or the tax authority.",
   },
 
-  sourceNote: "Answers and legal text are shown in Vietnamese, the language of the source law.",
+  sourceNote: "Quoted legal text stays in Vietnamese, the language of the source law.",
 
   skipToContent: "Skip to main content",
+
+  notFound: { title: "This page doesn't exist." },
 
   mockBadge: "Prepared example responses · not live output",
   mockNote:
@@ -50,10 +53,12 @@ export const en: Dict = {
     inputLabel: "Question",
     send: "Send question",
     more: "More input options",
-    suggestions: "Sample questions (in Vietnamese)",
+    suggestions: "Sample questions",
     searching: "Finding the articles in force on the applied date…",
     error: "Couldn't get an answer. Please try again.",
     errTimeout: "The server took too long to answer. Please try again.",
+    errLength: "A question needs 3 to 2,000 characters.",
+    tooLong: (n: number) => `${n.toLocaleString("en-US")} / 2,000 characters`,
     empty: "Type a question or pick a sample question to start.",
     elapsed: (s: number) => `${s} s`,
     runMeta: (steps: number, secs: number) => `${steps} steps · ${secs} s`,
@@ -195,6 +200,14 @@ export const en: Dict = {
     amends: "Amends",
     referredBy: "Referred to by",
     retroOnly: "applies retroactively",
+    scope: {
+      toan_muc: "whole provision",
+      thay_cum_tu: "replaces a phrase",
+      mot_phan: "in part",
+      bo_sung: "adds text",
+    },
+    showAll: (n: number) => `Show all ${n}`,
+    showLess: "Show fewer",
     quote: "Quoted sentence",
     articleText: "Article text",
     chain: "Amendment chain",
@@ -231,6 +244,9 @@ export const en: Dict = {
     errNotPdf: "This file is not a PDF. Please choose a PDF with a text layer.",
     errTooBig: "The file is larger than 20 MB.",
     errFailed: "Couldn't read the document. Please try again.",
+    errScanned:
+      "This PDF has no text layer (it may be a scan). Please use a PDF with selectable text.",
+    errBadPdf: "This file isn't a readable PDF.",
     errNeedFile: "The server needs a PDF file. Please choose a PDF with a text layer.",
     replay: (n: string) =>
       `Historical replay: ${/NĐ/.test(n) ? "Decree" : "document"} ${n} added to the corpus`,
@@ -307,5 +323,117 @@ export const en: Dict = {
     title: "Under construction",
     body: "This screen will be in the demo.",
     back: "Back to Ask",
+  },
+  landing: {
+    place: "Ho Chi Minh City · 06:40",
+    title: "The right law, on the right day.",
+    sub: "Tax lookup with citations for Vietnamese household businesses. LexVi answers only from the rules in force on the date you ask, and opens the exact article it relied on.",
+    watch: "Watch the demo",
+    try: "Try the demo",
+    builtOn: "Built on Muse Spark · Meta Model API",
+    builtOnFull: "Built on Muse Spark · Muse Voice Transcribe · Meta Model API",
+    scroll: "Scroll: Mr. Minh's morning",
+    minh1: "Minh: “Do I pay tax this year, or not?”",
+    minh2:
+      "Minh: “One site says a hundred million. Another says five hundred. Another, one billion.”",
+    minh3: "Minh: “They can't all be right. And if I get it wrong…”",
+    minh4: "Minh: “Maybe the AI knows.”",
+    storyNote: "A story based on Vietnam's 2026 tax changes · thresholds from the official texts",
+    search: "household tax threshold 2026",
+    result: (n: number) => `result ${n} · a website`,
+    answers: [
+      ["≤ 100 million VND", "Circular 40/2021/TT-BTC"],
+      ["≤ 200 million VND", "VAT Law 48/2024/QH15"],
+      ["≤ 500 million VND", "Law 149/2025/QH15"],
+      ["≤ 1 billion VND", "Decree 141/2026/NĐ-CP"],
+    ],
+    newsTag: "News · VCCI survey, 2026",
+    newsStat: "66.8%",
+    news: "of household businesses struggle to keep up with new policy updates",
+    aiTitle: "AI search",
+    aiKind: "plain RAG",
+    question:
+      "My café makes 700 million a year. Is the 2026 VAT threshold 500 million or 1 billion?",
+    gloss: "“The 2026 threshold is 500 million, not 1 billion. A 700-million café must pay VAT.”",
+    cited: "Source cited: Decree 68/2026/NĐ-CP, Art. 3(1)–(2)",
+    stamp: "No longer in force",
+    stampSub:
+      "Decree 141/2026/NĐ-CP changed “500 million” to “1 billion” in Art. 3, from 01/01/2026.",
+    aiNote:
+      "Real output from our team test · question A01 · same model (muse-spark-1.3), plain RAG · 04/11/2026",
+    arrive: "Tax lookup with citations, for household businesses",
+    graphTitle: "Every rule knows the day it starts, and the laws that changed it.",
+    graphAlt:
+      "Animation: a 2021–2026 timeline with Circular 40/2021, VAT Law 48/2024, Law 149/2025 and Decree 141/2026. The date cursor at 01/12/2025 lights Circular 40 (≤ 100 million); at 04/11/2026 it lights Decree 141 (≤ 1 billion).",
+    graphNote:
+      "Thresholds from the official texts · dots mark issue dates · Law 09/2026/QH16 let the Government set the figure; Decree 141/2026 amended Decree 68/2026",
+    tourNote:
+      "Prepared example responses built from the official texts · not live output · reference information, not advice",
+    tour: [
+      {
+        label: "Your date",
+        meta: "",
+        caption: "LexVi answers only from the rules in force on the date you choose.",
+      },
+      {
+        label: "Checked before it answers",
+        meta: "Powered by Muse Spark",
+        caption:
+          "Code checks every citation: the article exists, it is in force that day, the quote is word for word. Then a second Muse Spark review. Here it caught an outdated clause and fixed it.",
+      },
+      {
+        label: "The article itself",
+        meta: "dates · amendment chain",
+        caption:
+          "Every answer opens the article: when it was issued, when it applies, and the chain of laws that changed it.",
+      },
+      {
+        label: "Guardrails",
+        meta: "not advice · an accountant confirms",
+        caption:
+          "When the texts disagree, it says so: after three failed checks the answer is marked “needs accountant confirmation”.",
+      },
+      {
+        label: "Ask by voice or photo",
+        meta: "Muse Voice Transcribe · Muse Spark",
+        caption:
+          "Speak the question, or snap the tax notice. Muse Voice Transcribe and Muse Spark turn it into a question.",
+      },
+    ],
+    proofKicker: "Before trusting it with his taxes",
+    proofTitle: "20 real questions, two systems",
+    plain: "Plain AI search",
+    plainShort: "Plain",
+    lexvi: "LexVi",
+    outdated: "cited a rule no longer in force",
+    basis: "right legal basis",
+    markOut: "✕ outdated",
+    markBasis: "✕ no right basis",
+    markOk: "✓",
+    byDesign: "LexVi's 0 is by design: it refuses citations not in force.",
+    proofLink: "See the full benchmark",
+    proofNote:
+      "Team-written test set · N = 20 (11 date traps) · same model: muse-spark-1.3 · run 04/11/2026 · questions shown in English translation",
+    savedSub: "a year, not owed",
+    savedLine:
+      "Minh: “About twenty-four million a year. I almost paid for a rule that no longer applied.”",
+    calling: "Calling · my accountant…",
+    callLine: "Minh: “Hello, it's Minh. Can you confirm this for me?”",
+    savedNote:
+      "Illustrative estimate, if taxed as services tied to goods: VAT 3% (Law 48/2024, Art. 12) + PIT 1.5% above 500 million (Law 109/2025, Art. 7) · confirm with an accountant",
+    finalTitle: "LexVi. The right law, on the right day.",
+    roles:
+      "Yoshio — product, UI & film · Tuấn Anh — agent & verification · Dũng — data & law graph",
+    honesty:
+      "A story based on the 2026 rules. The demo shows prepared example responses built from the official texts; the benchmark comes from the live system. Reference information, not advice.",
+    made: "Made during the Meta Global AI Developer Hackathon, 2026",
+    videoTitle: "LexVi demo film",
+    videoClose: "Close video",
+    videoNote: "English narration, with captions.",
+    pause: "Pause",
+    play: "Play",
+    pauseLoop: "Pause the animation",
+    playLoop: "Play the animation",
+    docTitle: "LexVi — The right law, on the right day",
   },
 };

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { useT } from "@/components/providers";
+import { useLocale, useT } from "@/components/providers";
 import {
   InputError,
   type InputErrorCode,
@@ -25,7 +25,7 @@ import {
   transcribe,
   usingMock,
 } from "@/lib/api/client";
-import { MOCK_PHOTO_READING, MOCK_TRANSCRIPT } from "@/lib/api/mock";
+import { mockPhotoReading, mockTranscript } from "@/lib/api/mock";
 import { shrinkImage, toWav } from "@/lib/audio/wav";
 import { formatDate } from "@/lib/format";
 import { duration, ease } from "@/lib/motion";
@@ -99,6 +99,9 @@ export function AskBar({
   onApplyDate?: (iso: string) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  // Prepared examples are written in the UI language; live model output is Vietnamese.
+  const proseLang = usingMock && locale === "en" ? "en" : "vi";
   const [mic, setMic] = useState<MicState>("idle");
   const [micError, setMicError] = useState<InputErrorCode | null>(null);
   const [micNote, setMicNote] = useState(false);
@@ -160,7 +163,7 @@ export function AskBar({
     voiceTimers.current = [
       setTimeout(() => setMic("transcribing"), 1600),
       setTimeout(() => {
-        onChange(MOCK_TRANSCRIPT); // MOCK transcript
+        onChange(mockTranscript(locale)); // MOCK transcript
         setVoiceCanned(true);
         setMic("idle");
       }, 2400),
@@ -238,7 +241,7 @@ export function AskBar({
         const code = err instanceof InputError ? err.code : "failed";
         // Without a key on the server, mock mode falls back to the canned transcript.
         if (code === "not_configured" && usingMock) {
-          onChange(MOCK_TRANSCRIPT); // MOCK transcript
+          onChange(mockTranscript(locale)); // MOCK transcript
           setVoiceCanned(true);
           setMic("idle");
           return;
@@ -295,7 +298,7 @@ export function AskBar({
     if (canned) {
       photoTimers.current = [
         setTimeout(() => {
-          setReading({ ...MOCK_PHOTO_READING }); // MOCK reading
+          setReading({ ...mockPhotoReading(locale) }); // MOCK reading
           setPhotoCanned(true);
           setPhotoBusy(false);
         }, 1400),
@@ -316,7 +319,7 @@ export function AskBar({
       if ((err as Error).name === "AbortError") return;
       const code = err instanceof InputError ? err.code : "failed";
       if (code === "not_configured" && usingMock) {
-        setReading({ ...MOCK_PHOTO_READING }); // MOCK reading
+        setReading({ ...mockPhotoReading(locale) }); // MOCK reading
         setPhotoCanned(true);
       } else setPhotoError(code);
     } finally {
@@ -346,7 +349,9 @@ export function AskBar({
     textareaRef?.current?.focus();
   };
 
-  const canSend = value.trim().length > 0 && !busy;
+  const len = value.trim().length;
+  const tooLong = len > 2000;
+  const canSend = len >= 3 && !tooLong && !busy;
 
   const extras = (
     <>
@@ -434,6 +439,11 @@ export function AskBar({
             placeholder={t.ask.placeholder}
             className="min-h-16 max-h-48 flex-1 resize-none [field-sizing:content] [scrollbar-width:thin] max-sm:min-h-12 max-sm:max-h-36 bg-transparent px-2 py-2 text-[1.0625rem] leading-[1.6] text-ink outline-none placeholder:text-ink-3 focus-visible:outline-none"
           />
+          {tooLong && (
+            <p role="status" className="self-end px-2 pb-2 font-mono text-xs text-amber">
+              {t.ask.tooLong(len)}
+            </p>
+          )}
           <div className="flex items-center gap-1 max-sm:hidden">{extras}</div>
           <div className="sm:hidden">
             <IconButton
@@ -528,7 +538,7 @@ export function AskBar({
                 </p>
               )}
               {reading && (
-                <p lang="vi" className="text-sm font-semibold text-ink">
+                <p lang={proseLang} className="text-sm font-semibold text-ink">
                   {reading.loai_giay_to}
                 </p>
               )}
@@ -559,7 +569,7 @@ export function AskBar({
                 </p>
               )}
               {reading.tom_tat && (
-                <p lang="vi" className="text-[0.9375rem] leading-[1.6] text-ink-2">
+                <p lang={proseLang} className="text-[0.9375rem] leading-[1.6] text-ink-2">
                   {reading.tom_tat}
                 </p>
               )}
@@ -585,7 +595,7 @@ export function AskBar({
               {t.sourceNote && <p className="text-xs text-ink-3">{t.sourceNote}</p>}
               {reading.cau_hoi_goi_y && (
                 <div className="flex flex-col gap-2 rounded-md bg-surface-sunk px-3 py-2">
-                  <p lang="vi" className="text-[0.9375rem] text-ink">
+                  <p lang={proseLang} className="text-[0.9375rem] text-ink">
                     “{reading.cau_hoi_goi_y}”
                   </p>
                   <button
