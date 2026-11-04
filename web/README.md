@@ -10,9 +10,12 @@ Built for the Meta Global AI Developer Hackathon (Nov 2026). This repository is 
 The backend (agent loop on Muse Spark, verification, `/ingest`) and the legal corpus are built by
 the other team members.
 
-> **Status (03/11/2026): the UI runs on typed mock data.** Until the backend URL is configured,
-> every answer, citation, date and figure on screen is illustrative and has not been checked
-> against the original legal texts. The app shows a "Dữ liệu minh hoạ" flag while in this mode.
+> **Demo note (04/11/2026): the demo film shows prepared example responses, not live output.**
+> With `NEXT_PUBLIC_LEXVI_API_URL` empty, the UI answers from `lib/api/mock.ts`. Article texts,
+> pages, PDF links and document dates in those answers are extracted verbatim from role A's corpus
+> (`../data`) by `pnpm mock:corpus` into `lib/api/mock-corpus.json`. The answers, checklists and
+> verification attempts were written for the demo. The app labels them "Prepared example responses"
+> ("Phản hồi mẫu") in this mode. With the URL set, the same UI calls the live backend in this repo.
 
 ## Screens
 
@@ -82,7 +85,7 @@ All variables are optional and documented in [`.env.example`](.env.example).
 | Variable | Default | Purpose |
 |---|---|---|
 | `NEXT_PUBLIC_LEXVI_API_URL` | empty → mock data | Backend base URL (`POST /ask`, proposed `GET /dieu-khoan/{id}`). Public; inlined at build time. The backend must allow this origin via CORS. |
-| `NEXT_PUBLIC_LEXVI_API_TIMEOUT_MS` | `60000` | Timeout for backend calls. |
+| `NEXT_PUBLIC_LEXVI_API_TIMEOUT_MS` | `180000` | Timeout for backend calls (a real `/ask` takes 30–90 s). |
 | `NEXT_TELEMETRY_DISABLED` | unset | Set to `1` to disable Next.js telemetry. |
 
 Never put a key or token in a `NEXT_PUBLIC_*` variable; never commit `.env.local`.

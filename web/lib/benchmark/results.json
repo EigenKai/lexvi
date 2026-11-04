@@ -1,3 +1,369 @@
 {
-  "available": false
+  "available": true,
+  "generated_at": "2026-11-04",
+  "source_file": "results-20261104-1133.json",
+  "model": "muse-spark-1.3",
+  "n": 20,
+  "summary": {
+    "rag_thuong": {
+      "dan_dieu_cu": "3/20",
+      "dung_can_cu": "14/20",
+      "trich_sai": "0/20",
+      "can_xac_nhan": "0/20",
+      "loi": "0/20",
+      "khong_tra_loi": "1/20",
+      "id_bia": "0/20"
+    },
+    "lexvi": {
+      "dan_dieu_cu": "0/20",
+      "dung_can_cu": "20/20",
+      "trich_sai": "0/20",
+      "can_xac_nhan": "0/20",
+      "loi": "0/20",
+      "khong_tra_loi": "0/20",
+      "id_bia": "0/20"
+    }
+  },
+  "rows": [
+    {
+      "cau": 1,
+      "cau_hoi": "Hộ cà phê doanh thu năm 700 triệu đồng: ngưỡng không chịu GTGT năm 2026 là 500 triệu hay 1 tỷ?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": true,
+        "dung_can_cu": false,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 2,
+      "cau_hoi": "Cá nhân cư trú kinh doanh cà phê doanh thu 700 triệu năm 2026 có vượt ngưỡng phải nộp TNCN từ kinh doanh không?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": true,
+        "dung_can_cu": false,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 3,
+      "cau_hoi": "Tra cứu lại quy định cho ngày 01/01/2026 với toàn bộ văn bản đã biết đến 03/11/2026: có được áp Nghị định 141 dù ban hành 29/4 không?",
+      "ngay_ap_dung": "2026-01-01",
+      "rag_thuong": {
+        "dan_dieu_cu": true,
+        "dung_can_cu": false,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 4,
+      "cau_hoi": "Ngày 15/6/2025, hộ có doanh thu 90 triệu đồng/năm: nguyên tắc ngưỡng GTGT và TNCN tại Thông tư 40 là gì?",
+      "ngay_ap_dung": "2025-06-15",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 5,
+      "cau_hoi": "Ngày 01/6/2025, quán ăn hộ kinh doanh thuộc khoản 1 Điều 51 Luật 38, doanh thu 1,2 tỷ đồng có thuộc nhóm dùng hóa đơn máy tính tiền theo Nghị định 70 không?",
+      "ngay_ap_dung": "2025-06-01",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 6,
+      "cau_hoi": "Tháng 11/2026, có thể dùng Nghị định 123/2020, Nghị định 70/2025 và Thông tư 32/2025 như bộ quy định hóa đơn hiện hành không?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 7,
+      "cau_hoi": "Sang năm 2026 hộ cà phê còn áp dụng thuế khoán theo cách cũ không?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 8,
+      "cau_hoi": "Năm 2026 quán có còn phải nộp lệ phí môn bài không?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 9,
+      "cau_hoi": "Hộ đang hoạt động, doanh thu năm không quá 1 tỷ, chưa nộp hồ sơ quý I/2026 hoặc chưa thông báo tài khoản: hạn chuyển tiếp mới theo Thông tư 50 là ngày nào?",
+      "ngay_ap_dung": "2026-06-01",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 10,
+      "cau_hoi": "Hồ sơ hoàn TNCN nộp thừa của hộ theo phương pháp thu nhập tính thuế nhân thuế suất dùng mẫu nào sau 13/5/2026?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 11,
+      "cau_hoi": "Với hàng hóa/dịch vụ đủ điều kiện giảm GTGT, hộ tính theo tỷ lệ doanh thu có đổi thành thuế suất 8% như doanh nghiệp khấu trừ không?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 12,
+      "cau_hoi": "Chương trình giảm GTGT theo Nghị quyết 204 có áp dụng 8% cho mọi hàng hóa, dịch vụ không?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": false,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 13,
+      "cau_hoi": "Theo chính văn Nghị định 174, ngày cuối cùng của thời gian chính sách giảm GTGT được quy định là ngày nào?",
+      "ngay_ap_dung": "2026-12-31",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": false,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 14,
+      "cau_hoi": "Vì Luật GTGT 48 có hiệu lực 01/7/2025, có thể lấy riêng mức doanh thu ở khoản 25 Điều 5 áp dụng ngay 01/7/2025 không?",
+      "ngay_ap_dung": "2025-07-01",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 15,
+      "cau_hoi": "Công ty tổng doanh thu năm 2 tỷ: mức thuế suất TNDN tại khoản 2 Điều 10 Luật 67 là bao nhiêu trước khi xét miễn giảm và ngoại lệ?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": false,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 16,
+      "cau_hoi": "Doanh nghiệp nhỏ và vừa đăng ký kinh doanh lần đầu được quy định miễn TNDN trong bao lâu và phải đọc hướng dẫn ở đâu?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 17,
+      "cau_hoi": "Quy định bổ sung về miễn TNDN cho doanh nghiệp doanh thu không quá 1 tỷ năm 2026 nằm ở đâu? Có tự động áp cho mọi công ty liên kết không?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 18,
+      "cau_hoi": "Cá nhân cư trú kinh doanh doanh thu năm 9 tỷ có chính sách giảm số TNCN phải nộp năm 2026, 2027 nào mới nhất trong kho?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 19,
+      "cau_hoi": "Doanh nghiệp doanh thu 9 tỷ, đang có ưu đãi TNDN: khoản giảm 30% theo chính sách 2026-2027 tính trước hay sau ưu đãi?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    },
+    {
+      "cau": 20,
+      "cau_hoi": "Nếu chưa rõ nghĩa vụ khai và nộp thuế, hộ kinh doanh có quyền yêu cầu ai hướng dẫn?",
+      "ngay_ap_dung": "2026-11-03",
+      "rag_thuong": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      },
+      "lexvi": {
+        "dan_dieu_cu": false,
+        "dung_can_cu": true,
+        "trich_sai": false,
+        "can_xac_nhan": false
+      }
+    }
+  ]
 }

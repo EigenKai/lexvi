@@ -460,7 +460,8 @@ same frames on every take.
 - **Film mode: `?film=1`** (`lib/film.ts`). Deterministic: fixed "today" (`&today=2026-11-04` by default),
   fixed mock latency (900 ms), no random IDs, no text caret, hidden scrollbars (`html[data-film-mode]` in
   `globals.css`). Other parameters: `&date=` initial applied date, `&q=` prefilled question,
-  `&scenario=verified|unverified` force a mock scenario, `&autoplay=1` submit after ~0.8 s (on `/canh-bao`: run the sample document), `&pace=2` slow the
+  `&scenario=verified|unverified` force a mock scenario, `&autoplay=1` submit after ~0.8 s (on `/canh-bao`: send the
+  sample PDF `public/demo/van-ban-moi-141-2026.pdf` — the same file in mock and API mode), `&pace=2` slow the
   VerificationRibbon (0.5–4×) so the checks read on camera. Example:
   `/?film=1&autoplay=1&q=Quán cà phê của tôi doanh thu khoảng 800 triệu một năm thì có phải nộp thuế không?&pace=2`
 - **Language:** the UI opens in **English by default** (decided 3/11 so judges can read it); `?lang=vi|en` forces a
@@ -475,19 +476,28 @@ same frames on every take.
   `nav-mobile-{…}` (bottom nav, <1024). The ribbon repeated inside the drawer uses the `drawer-` prefix
   (`drawer-verification-ribbon`, `drawer-attempt-counter`, `drawer-check-*`) so every hook is unique on screen.
   Voice/photo: `voice-status`, `photo-summary`, `photo-use-question` (with the existing `mic-button`,
-  `photo-button`; film mode uses canned, illustrative results so takes stay identical).
-  Ask (real backend): `run-meta`, `drawer-claim`, `relation-list`. Benchmark (`/kiem-thu`): `benchmark-panel`,
+  `photo-button`; film mode uses canned example results so takes stay identical, each labelled on screen:
+  `voice-canned` "Example recording — not a live transcription", `photo-canned` "Example photo reading — not
+  live").
+  Ask (real backend): `run-meta`, `drawer-claim`, `relation-list` (groups `relation-amended-by`,
+  `relation-amends`, `relation-referred-by`), `drawer-source-pdf` ("Source PDF, p. N", the official PDF at the
+  cited page) and `drawer-source` (the document's landing page). Benchmark (`/kiem-thu`): `benchmark-panel`,
   `benchmark-metric-{dan_dieu_cu|dung_can_cu|trich_sai|can_xac_nhan}`, `benchmark-table`, `benchmark-empty`.
   Profile (`/ho-so`): `profile-form`, `profile-saved`.
   Impact screen (`/canh-bao`): `drop-zone`, `choose-button`, `sample-button`, `scan`, `impact-alert`, `impact-rule`,
-  `impact-row-{i}`, `impact-affects-{i}`, `impact-tasks`, `impact-dropped`; shell: `lang-toggle`.
+  `impact-row-{i}`, `impact-affects-{i}`, `impact-tasks`, `impact-dropped`, `impact-replay` ("Historical replay:
+  Decree … added to the corpus"), `impact-issued`, `impact-retroactive`; Benchmark also `benchmark-disclosure`,
+  `benchmark-extra`; shell: `lang-toggle` (left rail) and `lang-toggle-mobile` (top bar <1024), `skip-link`.
   Never rename one without updating the capture scripts.
 - **Capture viewport:** 1440×900 CSS px at deviceScaleFactor 2 (≥1024 layout: left rail + right drawer). Phone
   shots: 390×844.
 - **No dev overlays:** `devIndicators: false` in `next.config.ts`; record from `pnpm build && pnpm start` when
   possible.
-- **Honesty:** while the app runs on mocks the "Dữ liệu minh hoạ · chưa kết nối máy chủ" badge, the `mock-flag` in
-  the always-visible disclaimer bar and the drawer's "Nội dung minh hoạ" note stay visible. Don't hide them in film mode. Record final footage only on A's verified
+- **Honesty:** while the app runs on mocks the "Prepared example responses · not live output" badge (vi "Phản hồi mẫu
+  chuẩn bị sẵn · không phải kết quả trực tiếp") with its note, the `mock-flag` ("Prepared example") in the
+  always-visible disclaimer bar and the drawer's "Prepared example — article text is verbatim from the official PDF"
+  note stay visible. The mocks are built from the real corpus (verbatim article texts), but the answers are prepared,
+  not produced live; the Alerts screen labels its run a historical replay. Don't hide them in film mode. Record final footage only on A's verified
   data or B's live backend (constraints.md kill criteria).
 - **Mobile AskBar:** below 640 px the AskBar (without the profile chip, which moves to the page header) moves to the end of the column and sticks above the disclaimer and
   bottom nav (§8); the applied-date picker stays near the top.
