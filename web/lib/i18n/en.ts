@@ -33,10 +33,12 @@ export const en: Dict = {
 
   sourceNote: "Answers and legal text are shown in Vietnamese, the language of the source law.",
 
-  mockBadge: "Illustrative data · not connected to the server",
+  skipToContent: "Skip to main content",
+
+  mockBadge: "Prepared example responses · not live output",
   mockNote:
-    "Figures, articles and deadlines in this demo have not been checked against the original texts.",
-  mockFlag: "Illustrative data",
+    "Built from the real legal corpus: article texts are verbatim from the official PDFs, but these answers were prepared for the demo, not produced live by the system.",
+  mockFlag: "Prepared example",
   openArticle: "Open article",
   answerReady: "Answer ready.",
 
@@ -51,6 +53,7 @@ export const en: Dict = {
     suggestions: "Sample questions (in Vietnamese)",
     searching: "Finding the articles in force on the applied date…",
     error: "Couldn't get an answer. Please try again.",
+    errTimeout: "The server took too long to answer. Please try again.",
     empty: "Type a question or pick a sample question to start.",
     elapsed: (s: number) => `${s} s`,
     runMeta: (steps: number, secs: number) => `${steps} steps · ${secs} s`,
@@ -67,7 +70,8 @@ export const en: Dict = {
     idle: "Ask by voice",
     listening: "Listening…",
     transcribing: "Transcribing your voice…",
-    error: "No voice detected — please type your question",
+    error: "Couldn't transcribe — try again, or type your question",
+    canned: "Example recording — not a live transcription",
     stop: "Stop recording",
     seconds: (s: number, max: number) => `${s}/${max} s`,
     denied: "The browser hasn't allowed the microphone — allow it, or type your question.",
@@ -84,6 +88,7 @@ export const en: Dict = {
     remove: "Remove photo",
     reading: "Reading the photo…",
     readBy: "Read by Muse Spark — check it against your paper.",
+    canned: "Example photo reading — not live",
     notTax: "This photo doesn't look like a tax document.",
     dateFound: (d: string) => `Date on the paper: ${d}`,
     useQuestion: "Use this question",
@@ -184,6 +189,12 @@ export const en: Dict = {
     stillInForce: "—",
     page: "Page",
     source: "View the original document",
+    sourcePdf: (page: number) => `Source PDF, p. ${page}`,
+    sourcePage: "Document page",
+    amendedBy: "Amended by",
+    amends: "Amends",
+    referredBy: "Referred to by",
+    retroOnly: "applies retroactively",
     quote: "Quoted sentence",
     articleText: "Article text",
     chain: "Amendment chain",
@@ -192,7 +203,7 @@ export const en: Dict = {
     issuedRetro: (issued: string) => `issued ${issued} · applies retroactively`,
     retroactive: (issued: string, from: string) =>
       `Issued ${issued}, after the applied date, but in force retroactively from ${from}. How to apply this retroactively should be agreed with an accountant.`,
-    illustrative: "Illustrative content — not checked against the original text",
+    illustrative: "Prepared example — article text is verbatim from the official PDF",
     loading: "Loading article…",
     noDetail: "The server has not returned the article details.",
   },
@@ -220,9 +231,12 @@ export const en: Dict = {
     errNotPdf: "This file is not a PDF. Please choose a PDF with a text layer.",
     errTooBig: "The file is larger than 20 MB.",
     errFailed: "Couldn't read the document. Please try again.",
-    errNeedFile:
-      "The server needs a real PDF; the sample document only works with illustrative data.",
-    newDoc: "New document",
+    errNeedFile: "The server needs a PDF file. Please choose a PDF with a text layer.",
+    replay: (n: string) =>
+      `Historical replay: ${/NĐ/.test(n) ? "Decree" : "document"} ${n} added to the corpus`,
+    issued: (d: string) => `Issued ${d}`,
+    retroactive: (issued: string, from: string) =>
+      `Issued ${issued}, but applies retroactively from ${from}. How to apply this retroactively should be agreed with an accountant.`,
     appliesFrom: (d: string) => `Applies from ${d}`,
     affectedCount: (n: number, total: number) => `${n} of ${total} changes affect your business`,
     changes: "Articles changed",
@@ -243,8 +257,14 @@ export const en: Dict = {
     subtitle:
       "Same questions, same stored articles, same model. Results are counts of questions, not percentages.",
     emptyTitle: "No results yet",
-    emptyBody:
-      "Results appear after scripts/run_eval.py runs on the team-written test set, once the legal corpus is loaded.",
+    emptyBody: "Results appear after scripts/run_eval.py runs on the team-written test set.",
+    byConstruction:
+      "LexVi's submit step refuses citations not in force, so its 'cited outdated law' count is 0 by construction.",
+    extra: {
+      loi: "Run crashed",
+      khong_tra_loi: "No answer given",
+      id_bia: "Cited a provision id that doesn't exist",
+    },
     rag: "Plain RAG",
     lexvi: "LexVi",
     lower: "lower is better",

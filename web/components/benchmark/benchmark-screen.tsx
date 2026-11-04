@@ -9,6 +9,7 @@ import {
   type BenchmarkData,
   benchmark,
   type Count,
+  EXTRAS,
   METRICS,
   type MetricKey,
   type SystemKey,
@@ -152,6 +153,35 @@ function Results({ data }: { data: BenchmarkData }) {
         ))}
       </ul>
       <p className="mt-4 text-xs text-night-muted">{t.bench.note}</p>
+      <p data-film="benchmark-disclosure" className="mt-1 text-xs text-night-muted">
+        {t.bench.byConstruction}
+      </p>
+
+      {EXTRAS.some((k) => data.extra.rag_thuong[k] || data.extra.lexvi[k]) && (
+        <dl data-film="benchmark-extra" className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+          {EXTRAS.filter((k) => data.extra.rag_thuong[k] || data.extra.lexvi[k]).map((k) => (
+            <div key={k} className="rounded-md border border-night-line/60 px-3 py-2">
+              <dt className="text-xs text-night-muted">{t.bench.extra[k]}</dt>
+              <dd className="mt-1 flex flex-wrap gap-x-3 font-mono text-night-text tabular-nums">
+                {(
+                  [
+                    ["rag_thuong", t.bench.rag],
+                    ["lexvi", t.bench.lexvi],
+                  ] as const
+                ).map(([sys, label]) => {
+                  const c = data.extra[sys][k];
+                  return (
+                    <span key={sys}>
+                      <span className="font-sans text-xs text-night-muted">{label}</span>{" "}
+                      {c ? `${c.x}/${c.n}` : "—"}
+                    </span>
+                  );
+                })}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
 
       {data.rows.length > 0 && (
         <div data-film="benchmark-table" className="mt-6">

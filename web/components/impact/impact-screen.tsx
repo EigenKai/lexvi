@@ -14,6 +14,10 @@ import { ImpactAlert } from "./impact-alert";
 
 type Phase = "idle" | "scanning" | "done" | "error";
 
+/** Decree 141/2026 (official PDF), copied into public/demo for the sample and the film. */
+const SAMPLE_PDF = "/demo/van-ban-moi-141-2026.pdf";
+const SAMPLE_NAME = "van-ban-moi-141-2026.pdf";
+
 /** "Văn bản mới ảnh hưởng tới bạn" — the /ingest flow (DESIGN.md §11.2). */
 export function ImpactScreen() {
   const t = useT();
@@ -56,13 +60,42 @@ export function ImpactScreen() {
         setResult(res);
         setPhase("done");
       } catch (err) {
-        if ((err as Error).name === "AbortError" || abort.current !== ctrl) return;
-        const msg = err instanceof ApiError ? err.message : "";
-        setError(msg === "needs-file" ? t.impact.errNeedFile : msg || t.impact.errFailed);
+        // A newer run replaced this one: leave its state alone.
+        if (abort.current !== ctrl) return;
+        // Aborted (e.g. the screen was left mid-read): don't stay stuck on "scanning".
+        if ((err as Error).name === "AbortError") {
+          setPhase((p) => (p === "scanning" ? "idle" : p));
+          return;
+        }
+        // Map codes to copy; the server's own wording only goes to the console (client.ts).
+        setError(
+          err instanceof ApiError && err.code === "needs-file"
+            ? t.impact.errNeedFile
+            : err instanceof ApiError && err.status === 413
+              ? t.impact.errTooBig
+              : t.impact.errFailed,
+        );
         setPhase("error");
       }
     },
     [film.latencyMs, t],
+  );
+
+  /** The sample: Decree 141/2026 from public/demo, sent as a real PDF in both modes. */
+  const runSample = useCallback(
+    async (profile: HoSo) => {
+      let file: File | null = null;
+      try {
+        const res = await fetch(SAMPLE_PDF);
+        if (!res.ok) throw new Error(String(res.status));
+        file = new File([await res.blob()], SAMPLE_NAME, { type: "application/pdf" });
+      } catch {
+        // Mock mode can run without the file; the real backend gets a "needs a PDF" message.
+        file = null;
+      }
+      await run(file, profile);
+    },
+    [run],
   );
 
   const reset = () => {
@@ -87,10 +120,10 @@ export function ImpactScreen() {
     const id = setTimeout(() => {
       if (autoplayed.current) return;
       autoplayed.current = true;
-      void run(null, initialProfile.current);
+      void runSample(initialProfile.current);
     }, 800);
     return () => clearTimeout(id);
-  }, [film.autoplay, run]);
+  }, [film.autoplay, runSample]);
 
   useEffect(() => () => abort.current?.abort(), []);
 
@@ -113,7 +146,7 @@ export function ImpactScreen() {
         <AnimatePresence mode="wait">
           {(phase === "idle" || phase === "error") && (
             <motion.div key="drop" variants={variants} initial="hidden" animate="shown" exit="gone">
-              <DropZone onFile={(f) => void run(f, hoSo)} onSample={() => void run(null, hoSo)} />
+              <DropZone onFile={(f) => void run(f, hoSo)} onSample={() => void runSample(hoSo)} />
               {phase === "error" && error && (
                 <p role="alert" className="mt-3 text-sm font-medium text-crimson">
                   {error}

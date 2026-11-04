@@ -38,6 +38,13 @@ export interface QuanHe {
   den_id: string;
   loai: LoaiQuanHe;
   hieu_luc_tu: IsoDate;
+  /* Not in the 31/10 contract; sent by the backend as built (H3). */
+  /** Issue date of the acting document, when known. */
+  ngay_ban_hanh?: IsoDate;
+  /** What part of the provision the relation acts on (backend wording). */
+  pham_vi?: string;
+  /** True when the acting document applies retroactively. */
+  hoi_to?: boolean;
 }
 
 /** ho_so — the business profile every answer depends on. */
@@ -102,7 +109,12 @@ export interface AskResponseMoRong extends AskResponse {
 
 /** Proposed: GET /dieu-khoan/{id} → the article, its document, and the amendment chain. */
 export interface ChiTietDieuKhoan {
-  dieu_khoan: DieuKhoan;
+  dieu_khoan: DieuKhoan & {
+    /** Link to the official PDF at the cited page, e.g. "…/141-2026.pdf#page=3". */
+    nguon_pdf?: string;
+    /** Page number inside that PDF file, when it differs from the printed `trang`. */
+    trang_nguon?: number;
+  };
   van_ban: VanBan;
   /** Documents that set this rule, oldest first. */
   chuoi: NutChuoi[];
@@ -143,6 +155,8 @@ export interface VanBanMoi {
   tieu_de: string;
   /** YYYY-MM-DD as read by the model from the new document. */
   hieu_luc_tu: string;
+  /** YYYY-MM-DD issue date, when known. Later than `hieu_luc_tu` → retroactive. */
+  ngay_ban_hanh?: string;
 }
 
 export interface ThayDoi {
@@ -197,6 +211,10 @@ export interface CitationView {
   hieu_luc_tu?: IsoDate;
   het_hieu_luc?: IsoDate | null;
   nguon_url?: string;
+  /** Official PDF at the cited page (backend `vi_tri_nguon[0].nguon_pdf`, "…pdf#page=N"). */
+  nguon_pdf?: string;
+  /** Page inside the PDF file (backend `vi_tri_nguon[0].trang_nguon`). */
+  trang_nguon?: number;
   /** Article and clause as strings ("10a" happens). */
   dieu?: string;
   khoan?: string;
@@ -207,8 +225,15 @@ export interface CitationView {
   tinh_trang_text?: string;
   /** Full chain with document dates (mock / future endpoint). */
   chuoi?: NutChuoi[];
-  /** Direct relations acting on this provision (real backend `chuoi_sua_doi`). */
+  /**
+   * Direct relations acting on this provision: backend `bi_sua_doi_boi`, or the older
+   * `chuoi_sua_doi` when that is all the backend sends.
+   */
   quan_he?: QuanHe[];
+  /** Relations from this provision to the ones it amends (backend `sua_doi_toi`). */
+  sua_doi_toi?: QuanHe[];
+  /** Provisions that refer to this one (backend `dan_chieu`). */
+  dan_chieu?: QuanHe[];
 }
 
 export interface RunMeta {
@@ -223,6 +248,7 @@ export interface RunMeta {
 
 export interface AskResult {
   response: AskResponseMoRong;
-  views: Record<string, CitationView>;
+  /** One view per `response.trich_dan` entry, same index (a provision may be cited twice). */
+  views: CitationView[];
   meta: RunMeta;
 }

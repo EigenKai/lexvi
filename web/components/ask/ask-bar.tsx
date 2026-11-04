@@ -5,6 +5,7 @@ import {
   ArrowUp,
   CalendarCheck,
   FileSearch,
+  FlaskConical,
   ImagePlus,
   Loader2,
   Mic,
@@ -73,7 +74,8 @@ function IconButton({
  * (Muse Voice Transcribe). The transcript fills the box; the owner checks it and sends.
  * Photo: downscales the picture and sends it to /api/read-image (Muse Spark), which returns a
  * summary and a drafted question — never an answer; answers come only from the verified /ask.
- * Film mode (`canned`) keeps both deterministic with illustrative canned results.
+ * Film mode (`canned`) keeps both deterministic with canned example results, each visibly
+ * labelled as an example (never as live output).
  */
 export function AskBar({
   value,
@@ -109,21 +111,41 @@ export function AskBar({
   const [photoError, setPhotoError] = useState<InputErrorCode | null>(null);
   const [dateApplied, setDateApplied] = useState<string | null>(null);
 
-  const fileRef = useRef<HTMLInputElement>(null);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const recorder = useRef<MediaRecorder | null>(null);
-  const abort = useRef<AbortController | null>(null);
+  // Canned (example) results are labelled as such, never as live output (W5).
+  const [voiceCanned, setVoiceCanned] = useState(false);
+  const [photoCanned, setPhotoCanned] = useState(false);
 
-  useEffect(
-    () => () => {
-      for (const id of timers.current) clearTimeout(id);
-      abort.current?.abort();
-      recorder.current?.stream.getTracks().forEach((tr) => {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const voiceTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const photoTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const recorder = useRef<MediaRecorder | null>(null);
+  const voiceAbort = useRef<AbortController | null>(null);
+  const photoAbort = useRef<AbortController | null>(null);
+  // getUserMedia is pending (a second click must not open a second stream).
+  const starting = useRef(false);
+  // Set when the bar is hidden or unmounted, so a pending recording is not uploaded.
+  const cancelled = useRef(false);
+
+  useEffect(() => {
+    cancelled.current = false;
+    return () => {
+      // Under cacheComponents the route is hidden (React Activity), not unmounted: the state is
+      // kept, so put the inputs back to idle as well as stopping the work.
+      cancelled.current = true;
+      for (const id of voiceTimers.current) clearTimeout(id);
+      for (const id of photoTimers.current) clearTimeout(id);
+      voiceAbort.current?.abort();
+      photoAbort.current?.abort();
+      const rec = recorder.current;
+      recorder.current = null;
+      if (rec?.state === "recording") rec.stop(); // onstop sees `cancelled` and returns
+      rec?.stream.getTracks().forEach((tr) => {
         tr.stop();
       });
-    },
-    [],
-  );
+      setMic((m) => (m === "error" ? m : "idle"));
+      setPhotoBusy(false);
+    };
+  }, []);
   useEffect(() => () => (photo ? URL.revokeObjectURL(photo.url) : undefined), [photo]);
 
   /* ── Voice ──────────────────────────────────────────────────────────────────────────── */
@@ -135,30 +157,42 @@ export function AskBar({
 
   const cannedVoice = () => {
     setMic("listening");
-    timers.current = [
+    voiceTimers.current = [
       setTimeout(() => setMic("transcribing"), 1600),
       setTimeout(() => {
         onChange(MOCK_TRANSCRIPT); // MOCK transcript
+        setVoiceCanned(true);
         setMic("idle");
       }, 2400),
     ];
   };
 
   const stopRecording = () => {
-    for (const id of timers.current) clearTimeout(id);
+    for (const id of voiceTimers.current) clearTimeout(id);
     if (recorder.current?.state === "recording") recorder.current.stop();
   };
 
   const startMic = async () => {
-    if (mic === "listening") return stopRecording();
-    if (mic === "transcribing") return;
+    // The canned take runs on its own timers; a second click must not cut it short.
+    if (mic === "listening") return canned ? undefined : stopRecording();
+    if (mic === "transcribing" || starting.current) return;
     setMicError(null);
     setMicNote(false);
+    setVoiceCanned(false);
     if (canned) return cannedVoice();
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       return fail("mic_unavailable");
     }
+    // A leftover recorder (should not happen) is discarded, not uploaded.
+    const old = recorder.current;
+    recorder.current = null;
+    if (old) {
+      old.onstop = null;
+      if (old.state === "recording") old.stop();
+      for (const tr of old.stream.getTracks()) tr.stop();
+    }
     let stream: MediaStream;
+    starting.current = true;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
@@ -166,6 +200,12 @@ export function AskBar({
       return fail(
         name === "NotAllowedError" || name === "SecurityError" ? "mic_denied" : "mic_unavailable",
       );
+    } finally {
+      starting.current = false;
+    }
+    if (cancelled.current) {
+      for (const tr of stream.getTracks()) tr.stop();
+      return;
     }
     const chunks: Blob[] = [];
     const rec = new MediaRecorder(stream);
@@ -176,23 +216,30 @@ export function AskBar({
     };
     rec.onstop = async () => {
       for (const tr of stream.getTracks()) tr.stop();
+      if (recorder.current === rec) recorder.current = null;
+      if (cancelled.current) return;
       setMic("transcribing");
       const ctrl = new AbortController();
-      abort.current = ctrl;
+      voiceAbort.current = ctrl;
       try {
         if (Date.now() - started < 600) throw new InputError("no_speech");
         const { wav } = await toWav(new Blob(chunks, { type: rec.mimeType }));
         const text = await transcribe(wav, ctrl.signal);
         if (!text) throw new InputError("no_speech");
+        if (cancelled.current) return;
         onChange(text);
         setMicNote(true);
         setMic("idle");
       } catch (err) {
-        if ((err as Error).name === "AbortError") return;
+        if ((err as Error).name === "AbortError") {
+          setMic("idle");
+          return;
+        }
         const code = err instanceof InputError ? err.code : "failed";
         // Without a key on the server, mock mode falls back to the canned transcript.
         if (code === "not_configured" && usingMock) {
-          onChange(MOCK_TRANSCRIPT);
+          onChange(MOCK_TRANSCRIPT); // MOCK transcript
+          setVoiceCanned(true);
           setMic("idle");
           return;
         }
@@ -206,7 +253,7 @@ export function AskBar({
       const s = Math.floor((Date.now() - started) / 1000);
       setSeconds(s);
       if (s >= MAX_SECONDS) return stopRecording();
-      timers.current = [setTimeout(tick, 250)];
+      voiceTimers.current = [setTimeout(tick, 250)];
     };
     tick();
   };
@@ -231,9 +278,11 @@ export function AskBar({
   /* ── Photo ──────────────────────────────────────────────────────────────────────────── */
 
   const clearPhoto = () => {
-    abort.current?.abort();
+    photoAbort.current?.abort();
+    for (const id of photoTimers.current) clearTimeout(id);
     setPhoto(null);
     setReading(null);
+    setPhotoCanned(false);
     setPhotoError(null);
     setPhotoBusy(false);
     setDateApplied(null);
@@ -244,16 +293,17 @@ export function AskBar({
     setPhoto({ name: file.name, url: URL.createObjectURL(file) });
     setPhotoBusy(true);
     if (canned) {
-      timers.current = [
+      photoTimers.current = [
         setTimeout(() => {
           setReading({ ...MOCK_PHOTO_READING }); // MOCK reading
+          setPhotoCanned(true);
           setPhotoBusy(false);
         }, 1400),
       ];
       return;
     }
     const ctrl = new AbortController();
-    abort.current = ctrl;
+    photoAbort.current = ctrl;
     try {
       if (!/^image\/(jpeg|png|webp|gif|heic|heif)$/.test(file.type) && file.type !== "") {
         throw new InputError("unsupported_type");
@@ -265,10 +315,13 @@ export function AskBar({
     } catch (err) {
       if ((err as Error).name === "AbortError") return;
       const code = err instanceof InputError ? err.code : "failed";
-      if (code === "not_configured" && usingMock) setReading({ ...MOCK_PHOTO_READING });
-      else setPhotoError(code);
+      if (code === "not_configured" && usingMock) {
+        setReading({ ...MOCK_PHOTO_READING }); // MOCK reading
+        setPhotoCanned(true);
+      } else setPhotoError(code);
     } finally {
-      setPhotoBusy(false);
+      // A newer photo (or clearing) owns the busy flag now.
+      if (photoAbort.current === ctrl) setPhotoBusy(false);
     }
   };
 
@@ -441,6 +494,15 @@ export function AskBar({
             {micMessage(micError)}
           </p>
         )}
+        {voiceCanned && mic === "idle" && (
+          <p
+            data-film="voice-canned"
+            className="inline-flex w-fit items-center gap-1.5 rounded-full border border-dashed border-line-strong px-2.5 py-0.5 text-xs font-medium text-ink-2"
+          >
+            <FlaskConical aria-hidden className="size-3.5" />
+            {t.mic.canned}
+          </p>
+        )}
         {micNote && mic === "idle" && <p className="text-ink-3">{t.mic.check}</p>}
       </div>
 
@@ -506,10 +568,20 @@ export function AskBar({
                   {t.photo.dateFound(formatDate(reading.ngay_tren_giay))}
                 </p>
               )}
-              <p className="flex items-center gap-1.5 text-xs text-ink-3">
-                <FileSearch aria-hidden className="size-3.5" />
-                {t.photo.readBy}
-              </p>
+              {photoCanned ? (
+                <p
+                  data-film="photo-canned"
+                  className="inline-flex w-fit items-center gap-1.5 rounded-full border border-dashed border-line-strong px-2.5 py-0.5 text-xs font-medium text-ink-2"
+                >
+                  <FlaskConical aria-hidden className="size-3.5" />
+                  {t.photo.canned}
+                </p>
+              ) : (
+                <p className="flex items-center gap-1.5 text-xs text-ink-3">
+                  <FileSearch aria-hidden className="size-3.5" />
+                  {t.photo.readBy}
+                </p>
+              )}
               {t.sourceNote && <p className="text-xs text-ink-3">{t.sourceNote}</p>}
               {reading.cau_hoi_goi_y && (
                 <div className="flex flex-col gap-2 rounded-md bg-surface-sunk px-3 py-2">

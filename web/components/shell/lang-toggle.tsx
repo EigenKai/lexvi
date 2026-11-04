@@ -8,10 +8,10 @@ import type { Locale } from "@/lib/i18n";
 const OPTIONS: Locale[] = ["en", "vi"];
 
 /** EN | VI segmented control. English is the default (judges read English). */
-export function LangToggle() {
+export function LangToggle({ film = "lang-toggle" }: { film?: string }) {
   const { locale, setLocale, t } = useLocale();
   return (
-    <fieldset data-film="lang-toggle" className="inline-flex items-center gap-1.5">
+    <fieldset data-film={film} className="inline-flex items-center gap-1.5">
       <legend className="sr-only">{t.lang.label}</legend>
       <Languages aria-hidden className="size-4 text-ink-3" />
       <span className="inline-flex rounded-md border border-line-strong bg-surface p-0.5">

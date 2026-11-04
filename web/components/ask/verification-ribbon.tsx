@@ -129,6 +129,7 @@ export function VerificationRibbon({
   filmPrefix = "",
   unresolved,
   heading: Heading = "h2",
+  landmark = true,
 }: {
   attempts: LanKiemChung[] | undefined;
   /** The answer needs confirmation (server flag, or a cited article not in force). */
@@ -143,6 +144,8 @@ export function VerificationRibbon({
   /** Problems left after the last refusal (backend van_de_chua_giai_quyet), shown when not passed. */
   unresolved?: string[];
   heading?: "h2" | "h3";
+  /** False for the copy inside the drawer: renders as a group, not a duplicate region (axe). */
+  landmark?: boolean;
 }) {
   const t = useT();
   const [scope, animateScope] = useAnimate<HTMLElement>();
@@ -198,6 +201,8 @@ export function VerificationRibbon({
     return (
       <section
         data-film={`${filmPrefix}verification-ribbon`}
+        // In the drawer this is a group, not a second region landmark with the same name.
+        role={landmark ? undefined : "group"}
         aria-label={t.verify.title}
         className={cn(
           "flex flex-wrap items-center gap-2 rounded-lg border px-4 py-3 text-sm",
@@ -239,6 +244,8 @@ export function VerificationRibbon({
     <section
       ref={scope}
       data-film={`${filmPrefix}verification-ribbon`}
+      // In the drawer this is a group, not a second region landmark with the same name.
+      role={landmark ? undefined : "group"}
       aria-label={t.verify.title}
       className={cn(
         "relative overflow-hidden rounded-lg border bg-surface shadow-card",

@@ -1,3 +1,4 @@
+import { isIsoDate } from "@/lib/format";
 import { jsonError, logStatus, metaConfig, requestId, sameOrigin } from "@/lib/server/meta";
 
 /**
@@ -106,20 +107,25 @@ export async function POST(req: Request): Promise<Response> {
     return jsonError(res.status === 429 ? 429 : 502, code, rid);
   }
 
-  let parsed: Record<string, unknown> = {};
+  let raw: unknown;
   try {
-    parsed = JSON.parse(outputText(await res.json())) as Record<string, unknown>;
+    raw = JSON.parse(outputText(await res.json()));
   } catch {
     logStatus("read-image", rid, 502, "unparseable");
     return jsonError(502, "unreadable_output", rid);
   }
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    logStatus("read-image", rid, 502, "not_object");
+    return jsonError(502, "unreadable_output", rid);
+  }
+  const parsed = raw as Record<string, unknown>;
   // Model output is untrusted: keep only the expected fields, typed and length-capped.
   const date = cap(parsed.ngay_tren_giay, 10);
   const out = {
     la_giay_to_thue: parsed.la_giay_to_thue === true,
     loai_giay_to: cap(parsed.loai_giay_to, 80),
     tom_tat: cap(parsed.tom_tat, 400),
-    ngay_tren_giay: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : "",
+    ngay_tren_giay: isIsoDate(date) ? date : "",
     cau_hoi_goi_y: cap(parsed.cau_hoi_goi_y, 300),
   };
   logStatus("read-image", rid, 200);

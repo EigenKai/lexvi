@@ -9,7 +9,7 @@ import { ask } from "@/lib/api/client";
 import type { AskResponseMoRong, HoSo, IsoDate, RunMeta } from "@/lib/api/contract";
 import { MOCK_SUGGESTIONS } from "@/lib/api/mock";
 import { type FilmConfig, readFilmConfig } from "@/lib/film";
-import { isCitableStatus } from "@/lib/legal-status";
+import { citableInAnswer } from "@/lib/legal-status";
 import { presence, presenceReduced } from "@/lib/motion";
 import { AnswerCard } from "./answer-card";
 import { AppliedDatePicker } from "./applied-date-picker";
@@ -45,7 +45,8 @@ export function AskScreen() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<Result | null>(null);
   const [lastAsked, setLastAsked] = useState<string | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [errorKind, setErrorKind] = useState<"failed" | "timeout">("failed");
   const [profileOpen, setProfileOpen] = useState(false);
 
   const abort = useRef<AbortController | null>(null);
@@ -74,16 +75,18 @@ export function AskScreen() {
       abort.current?.abort();
       const ctrl = new AbortController();
       abort.current = ctrl;
-      setOpenId(null);
+      setOpenIndex(null);
       setLastAsked(q);
+      setErrorKind("failed");
       setPhase("searching");
       try {
         const { response, views, meta } = await ask(
           { cau_hoi: q, ngay_ap_dung: date, ho_so: profile },
           { latencyMs: film.latencyMs, scenario: film.scenario, signal: ctrl.signal },
         );
-        const citations: ResolvedCitation[] = response.trich_dan.map((trich) => {
-          const view = views[trich.id] ?? {
+        // views[i] belongs to trich_dan[i]: one provision may be cited twice with different quotes.
+        const citations: ResolvedCitation[] = response.trich_dan.map((trich, i) => {
+          const view = views[i] ?? {
             id: trich.id,
             cau_trich: trich.cau_trich,
             trang: trich.trang,
@@ -91,6 +94,7 @@ export function AskScreen() {
           return { trich, view, status: view.trang_thai ?? null };
         });
         if (ctrl.signal.aborted) return;
+        const all = citations.map((c) => c.view);
         runCount.current += 1;
         setResult({
           run: runCount.current,
@@ -98,12 +102,20 @@ export function AskScreen() {
           response,
           citations,
           meta,
-          needsConfirm: response.can_xac_nhan || citations.some((c) => !isCitableStatus(c.status)),
+          // An amended provision cited together with its amender still reads as the rule in force.
+          needsConfirm: response.can_xac_nhan || all.some((v) => !citableInAnswer(v, all)),
         });
         setPhase("verifying");
       } catch (err) {
-        // Ignore aborts and anything from a run that a newer run has replaced.
-        if ((err as Error).name === "AbortError" || abort.current !== ctrl) return;
+        // A newer run replaced this one: leave its state alone.
+        if (abort.current !== ctrl) return;
+        const name = (err as Error).name;
+        // Aborted (e.g. the screen was left mid-request): don't stay stuck on "searching".
+        if (name === "AbortError") {
+          setPhase((p) => (p === "searching" ? "idle" : p));
+          return;
+        }
+        setErrorKind(name === "TimeoutError" ? "timeout" : "failed");
         setPhase("error");
       }
     },
@@ -145,7 +157,8 @@ export function AskScreen() {
 
   const onRibbonDone = useCallback(() => setPhase((p) => (p === "verifying" ? "done" : p)), []);
 
-  const open = result?.citations.find((c) => c.trich.id === openId) ?? null;
+  const open = openIndex === null ? null : (result?.citations[openIndex] ?? null);
+  const errorText = errorKind === "timeout" ? t.ask.errTimeout : t.ask.error;
   const variants = reduced ? presenceReduced : presence;
 
   return (
@@ -211,7 +224,7 @@ export function AskScreen() {
 
         <div aria-live="polite" className="sr-only">
           {phase === "searching" && t.ask.searching}
-          {phase === "error" && t.ask.error}
+          {phase === "error" && errorText}
           {phase === "done" &&
             result &&
             `${t.answerReady} ${result.needsConfirm ? t.status.can_xac_nhan : t.status.verified}.`}
@@ -245,7 +258,7 @@ export function AskScreen() {
               exit="gone"
               className="text-sm text-crimson"
             >
-              {t.ask.error}
+              {errorText}
             </motion.p>
           )}
           {result && (phase === "verifying" || phase === "done") && (
@@ -271,7 +284,7 @@ export function AskScreen() {
                     citations={result.citations}
                     applied={result.applied}
                     today={film.today}
-                    onOpenCitation={setOpenId}
+                    onOpenCitation={setOpenIndex}
                   />
                 )}
               </AnimatePresence>
@@ -286,7 +299,7 @@ export function AskScreen() {
         attempts={result?.response.kiem_chung}
         canXacNhan={result?.needsConfirm ?? false}
         unresolved={result?.meta.van_de}
-        onClose={() => setOpenId(null)}
+        onClose={() => setOpenIndex(null)}
       />
       <ProfileSheet
         open={profileOpen}

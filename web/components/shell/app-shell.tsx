@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const t = useT();
   // Height of the sticky footer (disclaimer + bottom nav), so sticky content can sit above it.
-  const footer = useRef<HTMLDivElement>(null);
+  const footer = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = footer.current;
     if (!el) return;
@@ -64,6 +64,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh">
+      <a
+        href="#main"
+        data-film="skip-link"
+        className="sr-only z-50 rounded-md bg-brand px-4 py-2 font-medium text-white focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+      >
+        {t.skipToContent}
+      </a>
       {/* Left rail ≥1024 */}
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-paper px-4 py-6 lg:flex">
         <Link
@@ -116,13 +123,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Logo />
           </Link>
           <div className="ml-auto">
-            <LangToggle />
+            <LangToggle film="lang-toggle-mobile" />
           </div>
         </header>
 
-        <main className="flex-1">{children}</main>
+        <main id="main" tabIndex={-1} className="flex-1 outline-none">
+          {children}
+        </main>
 
-        <div ref={footer} className="sticky bottom-0 z-30">
+        <footer ref={footer} className="sticky bottom-0 z-30">
           <DisclaimerBar />
           {/* Bottom nav <1024 */}
           <nav aria-label={t.nav.label} className="border-t border-line bg-paper lg:hidden">
@@ -149,7 +158,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               })}
             </ul>
           </nav>
-        </div>
+        </footer>
       </div>
     </div>
   );

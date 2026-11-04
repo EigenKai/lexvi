@@ -30,6 +30,14 @@ export function parseIso(iso: IsoDate): { y: number; m: number; d: number } {
   return { y, m, d };
 }
 
+/** True for an exact "yyyy-MM-dd" string that is a real calendar date (no 2026-02-30). */
+export function isIsoDate(v: unknown): v is IsoDate {
+  if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const { y, m, d } = parseIso(v);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
 /** ISO → dd/MM/yyyy (DESIGN.md §3). */
 export function formatDate(iso: IsoDate): string {
   const { y, m, d } = parseIso(iso);

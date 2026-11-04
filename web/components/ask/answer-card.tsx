@@ -22,7 +22,8 @@ export function AnswerCard({
   citations: ResolvedCitation[];
   applied: IsoDate;
   today: IsoDate;
-  onOpenCitation: (id: string) => void;
+  /** Opens the citation at this index of `citations`. */
+  onOpenCitation: (index: number) => void;
 }) {
   const t = useT();
   const reduced = useReducedMotion();
@@ -76,11 +77,12 @@ export function AnswerCard({
           }}
         >
           {citations.map((c, i) => (
-            <motion.li key={c.trich.id} variants={variants} className="max-w-full">
+            // biome-ignore lint/suspicious/noArrayIndexKey: one provision may be cited twice; the list is rebuilt per answer
+            <motion.li key={`${c.trich.id}|${i}`} variants={variants} className="max-w-full">
               <CitationChip
                 citation={c}
                 film={`citation-chip-${i}`}
-                onOpen={() => onOpenCitation(c.trich.id)}
+                onOpen={() => onOpenCitation(i)}
               />
             </motion.li>
           ))}

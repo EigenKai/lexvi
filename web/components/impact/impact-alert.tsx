@@ -6,6 +6,7 @@ import {
   CircleMinus,
   CircleSlash,
   GitCommitHorizontal,
+  History,
   type LucideIcon,
   RotateCcw,
   ShieldX,
@@ -15,12 +16,11 @@ import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useT } from "@/components/providers";
 import type { DieuBiAnhHuong, IngestResponse, IsoDate, LoaiThayDoi } from "@/lib/api/contract";
-import { formatDate } from "@/lib/format";
+import { formatDate, isIsoDate } from "@/lib/format";
+import { isRetroactive } from "@/lib/legal-status";
 import { duration, ease, presence, presenceReduced } from "@/lib/motion";
 import { Checklist } from "../ask/checklist";
 import { StatusBadge } from "../status";
-
-const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Relation colour + icon (DESIGN.md §2.2): the word comes from the dictionary. */
 const RELATION_STYLE: Record<LoaiThayDoi, { icon: LucideIcon; cls: string }> = {
@@ -133,6 +133,8 @@ export function ImpactAlert({
   const rows = result.dieu_bi_anh_huong;
   const affected = rows.filter((r) => r.anh_huong_toi_ho_so).length;
   const vb = result.van_ban_moi;
+  const issued = vb.ngay_ban_hanh && isIsoDate(vb.ngay_ban_hanh) ? vb.ngay_ban_hanh : null;
+  const from = isIsoDate(vb.hieu_luc_tu) ? vb.hieu_luc_tu : null;
 
   return (
     <motion.article
@@ -153,7 +155,10 @@ export function ImpactAlert({
       />
 
       <header className="flex flex-col gap-2">
-        <p className="text-xs font-semibold text-ink-3">{t.impact.newDoc}</p>
+        {/* The demo replays a document already published (Decree 141/2026); say so on screen. */}
+        <p data-film="impact-replay" className="text-xs font-semibold text-ink-3">
+          {t.impact.replay(vb.so_hieu)}
+        </p>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 id="impact-heading" className="font-mono text-lg font-medium text-ink">
@@ -162,9 +167,23 @@ export function ImpactAlert({
             <p lang="vi" className="text-[0.9375rem] text-ink-2">
               {vb.tieu_de}
             </p>
-            {ISO.test(vb.hieu_luc_tu) && (
+            {issued && (
+              <p data-film="impact-issued" className="font-mono text-sm text-ink-3 tabular-nums">
+                {t.impact.issued(formatDate(issued))}
+              </p>
+            )}
+            {from && (
               <p className="font-mono text-sm text-ink-3 tabular-nums">
-                {t.impact.appliesFrom(formatDate(vb.hieu_luc_tu))}
+                {t.impact.appliesFrom(formatDate(from))}
+              </p>
+            )}
+            {issued && from && isRetroactive(issued, from, from) && (
+              <p
+                data-film="impact-retroactive"
+                className="mt-1 flex items-start gap-2 rounded-md bg-surface-sunk px-3 py-2 text-sm leading-[1.5] text-ink-2"
+              >
+                <History aria-hidden className="mt-0.5 size-4 shrink-0" />
+                {t.impact.retroactive(formatDate(issued), formatDate(from))}
               </p>
             )}
           </div>
@@ -189,7 +208,8 @@ export function ImpactAlert({
           }}
         >
           {rows.map((row, i) => (
-            <motion.li key={`${row.dieu_bi_tac_dong}|${row.trich_doan}`} variants={variants}>
+            // biome-ignore lint/suspicious/noArrayIndexKey: one excerpt may act on one article twice
+            <motion.li key={`${row.dieu_bi_tac_dong}|${row.trich_doan}|${i}`} variants={variants}>
               <ImpactRow row={row} index={i} />
             </motion.li>
           ))}
@@ -217,8 +237,12 @@ export function ImpactAlert({
           </summary>
           <p className="mt-1 text-xs text-ink-3">{t.impact.droppedHint}</p>
           <ul className="mt-3 flex flex-col gap-2">
-            {result.bi_loai.map((d) => (
-              <li key={`${d.dieu_bi_tac_dong}|${d.trich_doan}`} className="text-sm leading-[1.5]">
+            {result.bi_loai.map((d, i) => (
+              <li
+                // biome-ignore lint/suspicious/noArrayIndexKey: dropped rows may repeat
+                key={`${d.dieu_bi_tac_dong}|${d.trich_doan}|${i}`}
+                className="text-sm leading-[1.5]"
+              >
                 <span lang="vi" className="font-serif text-ink-2">
                   “{d.trich_doan}”
                 </span>

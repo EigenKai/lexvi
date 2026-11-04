@@ -1,4 +1,4 @@
-import type { IsoDate, NutChuoi, TrangThai } from "./api/contract";
+import type { IsoDate, NutChuoi, QuanHe, TrangThai } from "./api/contract";
 import { compareIso } from "./format";
 
 export type NodeState = "current" | "superseded" | "expired" | "future";
@@ -23,7 +23,8 @@ export function chainStates(chain: NutChuoi[], applied: IsoDate): NodeState[] {
   const effective = chain.map(
     (n, i) =>
       !future[i] &&
-      (n.van_ban.het_hieu_luc === null || compareIso(applied, n.van_ban.het_hieu_luc) < 0),
+      // null or "" = no end date.
+      (!n.van_ban.het_hieu_luc || compareIso(applied, n.van_ban.het_hieu_luc) < 0),
   );
   let lastEffective = -1;
   effective.forEach((e, i) => {
@@ -71,6 +72,44 @@ export function citationStatus(soHieu: string, chain: NutChuoi[], applied: IsoDa
 export function isCitableStatus(s: TrangThai | null): boolean {
   // null = backend gave no detail, so the UI cannot judge; the server's can_xac_nhan decides.
   return s === null || s === "con_hieu_luc" || s === "huong_dan";
+}
+
+/** The fields of a citation view that `citableInAnswer` reads. */
+export interface CitedView {
+  id: string;
+  so_hieu?: string;
+  trang_thai?: TrangThai;
+  chuoi?: NutChuoi[];
+  quan_he?: QuanHe[];
+}
+
+const OVERRIDES = new Set(["sua_doi", "thay_the"]);
+
+/**
+ * An amended provision is still citable when the answer also cites what amended it (read
+ * together, the two give the rule in force):
+ * (a) real backend: one of its overriding relations' `tu_id` is another cited provision;
+ * (b) mock / detail views: a later `sua_doi` node in its chain is the document of another cited
+ *     view that is itself in force.
+ */
+export function isCitedWithAmender(view: CitedView, all: CitedView[]): boolean {
+  if (view.trang_thai !== "da_sua_doi") return false;
+  const others = all.filter((o) => o !== view);
+  const ids = new Set(others.map((o) => o.id));
+  if (view.quan_he?.some((q) => OVERRIDES.has(q.loai) && ids.has(q.tu_id))) return true;
+  const chain = view.chuoi;
+  if (!chain || !view.so_hieu) return false;
+  const at = chain.findIndex((n) => n.van_ban.so_hieu === view.so_hieu);
+  if (at < 0) return false;
+  const inForce = new Set(
+    others.filter((o) => o.trang_thai === "con_hieu_luc" && o.so_hieu).map((o) => o.so_hieu),
+  );
+  return chain.slice(at + 1).some((n) => n.quan_he === "sua_doi" && inForce.has(n.van_ban.so_hieu));
+}
+
+/** Whether each cited view may stand in a verified answer (see isCitableStatus). */
+export function citableInAnswer(view: CitedView, all: CitedView[]): boolean {
+  return isCitableStatus(view.trang_thai ?? null) || isCitedWithAmender(view, all);
 }
 
 /** Issued after the applied date but applying on or before it → applied retroactively. */

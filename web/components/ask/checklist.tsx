@@ -5,11 +5,9 @@ import { CalendarClock, Check, CircleAlert } from "lucide-react";
 import { useState } from "react";
 import { useT } from "@/components/providers";
 import type { ChecklistItem, IsoDate } from "@/lib/api/contract";
-import { daysBetween, formatDate } from "@/lib/format";
+import { daysBetween, formatDate, isIsoDate } from "@/lib/format";
 import type { Dict } from "@/lib/i18n";
 import { CitationChip, type ResolvedCitation } from "./citation-chip";
-
-const ISO = /^\d{4}-\d{2}-\d{2}/;
 
 function dueText(t: Dict, days: number): string {
   if (days < 0) return t.due.overdue(-days);
@@ -30,7 +28,8 @@ export function Checklist({
   today: IsoDate;
   /** Citations to show as chips for `can_cu`; when none matches, `can_cu` shows as a mono label. */
   citations?: ResolvedCitation[];
-  onOpenCitation?: (id: string) => void;
+  /** Opens the citation at this index of `citations`. */
+  onOpenCitation?: (index: number) => void;
   emptyText?: string;
   film?: string;
 }) {
@@ -44,13 +43,18 @@ export function Checklist({
     <ul data-film={film} className="flex flex-col divide-y divide-line">
       {items.map((item, i) => {
         // The backend sends han: "" when the law states no deadline.
-        const hasDue = ISO.test(item.han);
+        const hasDue = isIsoDate(item.han.slice(0, 10));
         const days = hasDue ? daysBetween(today, item.han) : 0;
         const tone = !hasDue ? "none" : days < 0 ? "overdue" : days <= 7 ? "soon" : "later";
-        const basis = citations.find((c) => c.trich.id === item.can_cu);
+        const basisIndex = citations.findIndex((c) => c.trich.id === item.can_cu);
+        const basis = basisIndex >= 0 ? citations[basisIndex] : undefined;
         const id = `task-${i}`;
         return (
-          <li key={`${item.viec}-${item.han}`} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+          <li
+            // biome-ignore lint/suspicious/noArrayIndexKey: two tasks may share text and deadline
+            key={`${item.viec}|${item.han}|${i}`}
+            className="flex gap-3 py-3 first:pt-0 last:pb-0"
+          >
             <span className="relative mt-0.5 inline-flex size-6 shrink-0">
               <input
                 id={id}
@@ -106,7 +110,7 @@ export function Checklist({
                     <CitationChip
                       size="sm"
                       citation={basis}
-                      onOpen={() => onOpenCitation(basis.trich.id)}
+                      onOpen={() => onOpenCitation(basisIndex)}
                     />
                   </span>
                 )}

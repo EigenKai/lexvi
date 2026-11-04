@@ -1,5 +1,5 @@
 import type { IsoDate } from "./api/contract";
-import { todayInVietnam } from "./format";
+import { isIsoDate, todayInVietnam } from "./format";
 
 /**
  * Camera-ready capture mode (DESIGN.md §13.1).
@@ -26,7 +26,6 @@ export interface FilmConfig {
   latencyMs: number;
 }
 
-const ISO = /^\d{4}-\d{2}-\d{2}$/;
 export const FILM_DEFAULT_TODAY = "2026-11-04";
 
 export function readFilmConfig(search: string): FilmConfig {
@@ -39,12 +38,12 @@ export function readFilmConfig(search: string): FilmConfig {
   return {
     enabled,
     today:
-      enabled && todayParam && ISO.test(todayParam)
+      enabled && isIsoDate(todayParam)
         ? todayParam
         : enabled
           ? FILM_DEFAULT_TODAY
           : todayInVietnam(),
-    initialDate: dateParam && ISO.test(dateParam) ? dateParam : null,
+    initialDate: isIsoDate(dateParam) ? dateParam : null,
     question: p.get("q"),
     scenario: scenario === "verified" || scenario === "unverified" ? scenario : null,
     autoplay: enabled && p.get("autoplay") === "1",

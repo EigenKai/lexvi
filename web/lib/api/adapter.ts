@@ -7,6 +7,7 @@
  * requested from role B; until then, keep these patterns in sync with those files.
  */
 
+import { isIsoDate } from "../format";
 import { citationStatus } from "../legal-status";
 import type {
   AskResponseMoRong,
@@ -39,11 +40,18 @@ const RELATIONS = new Set<LoaiQuanHe>(["sua_doi", "thay_the", "bai_bo", "huong_d
 
 /**
  * store.py reasons: "đang có hiệu lực" · "{so} chỉ có hiệu lực từ {d}" · "{so} hết hiệu lực từ {d}" ·
- * "đã bị {loai, …} bởi {ids}" · "không có điều khoản {id} trong kho".
+ * "đã bị {loai, …} bởi {ids}" · "không có điều khoản {id} trong kho" ·
+ * "chưa ban hành tại thời điểm …" · "bản OCR chưa được đối chiếu" ·
+ * "… đã được sửa đổi bởi {ids} (đọc kèm {ids})".
+ * The amended-but-read-along wording maps to da_sua_doi; it stays citable when the answer also
+ * cites the amender (legal-status.ts isCitedWithAmender).
  */
 export function statusFromTinhTrang(text: string): TrangThai | undefined {
   const t = text.toLowerCase();
   if (!t) return undefined;
+  if (t.includes("chưa ban hành tại thời điểm") || t.includes("bản ocr chưa được đối chiếu"))
+    return "can_xac_nhan";
+  if (t.includes("đã được sửa đổi bởi") || t.includes("đọc kèm")) return "da_sua_doi";
   if (t.includes("đang có hiệu lực")) return "con_hieu_luc";
   if (t.includes("đã bị")) {
     if (t.includes("bai_bo")) return "het_hieu_luc";
@@ -56,19 +64,39 @@ export function statusFromTinhTrang(text: string): TrangThai | undefined {
 
 /* ── Verification attempts from GET /runs/{run_id} ─────────────────────────────────────────── */
 
-/** verify.py problem wording → the check it belongs to. Order matters only for readability. */
+/**
+ * Model-judge refusals (verify.py). Tested first: their text quotes article wording, which can
+ * contain the code-check phrases below.
+ */
+const JUDGE_RULE =
+  /điều khoản không ủng hộ nhận định|chưa được kiểm, hãy nộp lại|^Câu trả lời hoặc checklist không khớp điều khoản:/i;
+
+/** verify.py code-check wording → the check it belongs to. */
 const CODE_RULES: [RegExp, MaKiemChung][] = [
   [
     /không có điều khoản|không có trích dẫn nào|câu trả lời trống|phải là một điều khoản đã trích dẫn/i,
     "ton_tai",
   ],
   [/không áp dụng ngày/i, "con_hieu_luc"],
-  [/nguyên văn|quá ngắn|thiếu nhận định/i, "khop_nguyen_van"],
+  [
+    /nguyên văn|quá ngắn|thiếu nhận định|không định vị được câu trích|số trang không chứa câu trích/i,
+    "khop_nguyen_van",
+  ],
 ];
+/** Per-citation problems start "Trích dẫn N (…)"; the rest of the sentence names the check. */
+const CITATION_PREFIX = /^Trích dẫn \d+ \(/;
 const CODE_STEPS: MaKiemChung[] = ["ton_tai", "con_hieu_luc", "khop_nguyen_van"];
 
-function stepFor(problem: string): MaKiemChung | null {
-  for (const [re, ma] of CODE_RULES) if (re.test(problem)) return ma;
+function stepFor(problem: string): MaKiemChung | "judge" | null {
+  if (JUDGE_RULE.test(problem)) return "judge";
+  // Anchored: after a "Trích dẫn N (id): " prefix, match only the check's own phrase (up to the
+  // next colon), so the store's status reason quoted after it cannot trigger another rule.
+  let body = problem;
+  if (CITATION_PREFIX.test(problem)) {
+    const close = problem.indexOf("):");
+    if (close >= 0) body = problem.slice(close + 2).split(":")[0];
+  }
+  for (const [re, ma] of CODE_RULES) if (re.test(body)) return ma;
   return null;
 }
 
@@ -84,10 +112,12 @@ export function attemptFrom(lan_thu: number, passed: boolean, problems: string[]
     };
   }
   const byStep = new Map<MaKiemChung, string[]>();
+  const judge: string[] = [];
   const other: string[] = [];
   for (const p of problems) {
     const ma = stepFor(p);
-    if (ma) byStep.set(ma, [...(byStep.get(ma) ?? []), p]);
+    if (ma === "judge") judge.push(p);
+    else if (ma) byStep.set(ma, [...(byStep.get(ma) ?? []), p]);
     else other.push(p);
   }
   const codeFailed = byStep.size > 0;
@@ -96,7 +126,9 @@ export function attemptFrom(lan_thu: number, passed: boolean, problems: string[]
     return ps ? { ma, dat: false, ly_do: ps.join(" ") } : { ma, dat: true };
   });
   if (codeFailed) {
-    // Anything unmatched still gets shown, attached to the first failing check.
+    // Anything unmatched still gets shown, attached to the first failing check. (The judge only
+    // runs when every code check passes, so judge wording here is unexpected; keep it visible.)
+    other.push(...judge);
     if (other.length) {
       const first = buoc.find((b) => !b.dat);
       if (first) first.ly_do = [first.ly_do, ...other].filter(Boolean).join(" ");
@@ -107,7 +139,7 @@ export function attemptFrom(lan_thu: number, passed: boolean, problems: string[]
   buoc.push({
     ma: "mo_hinh_danh_gia",
     dat: false,
-    ly_do: other.join(" ") || undefined,
+    ly_do: [...judge, ...other].join(" ") || undefined,
   });
   return { lan_thu, buoc };
 }
@@ -131,9 +163,16 @@ export function parseRun(raw: unknown): RunRecord | null {
   };
 }
 
-/** Every nop_cau_tra_loi call in the run, as a verification attempt. Empty when none. */
+/**
+ * Every nop_cau_tra_loi call in the run, as a verification attempt. Empty when none. Submits
+ * that crashed (an `error` and no `van_de`) were never checked, so they are not attempts.
+ */
 export function attemptsFromRun(run: RunRecord, unresolved: string[]): LanKiemChung[] {
-  const submits = run.steps.filter((s) => s.tool === "nop_cau_tra_loi");
+  const submits = run.steps.filter((s) => {
+    if (s.tool !== "nop_cau_tra_loi") return false;
+    const r = isObj(s.result) ? s.result : {};
+    return !(r.error !== undefined && r.error !== null && !Array.isArray(r.van_de));
+  });
   return submits.map((s, i) => {
     const r = isObj(s.result) ? s.result : {};
     if (r.status === "answered") return attemptFrom(i + 1, true, []);
@@ -163,16 +202,45 @@ export function articleFromId(id: string): { dieu?: string; khoan?: string } {
   return m ? { dieu: m[1], khoan: m[2] } : {};
 }
 
-function parseRelations(v: unknown): QuanHe[] {
-  return arr(v)
-    .filter(isObj)
-    .filter((q) => typeof q.tu_id === "string" && RELATIONS.has(q.loai as LoaiQuanHe))
-    .map((q) => ({
-      tu_id: str(q.tu_id),
+/** Relations, validated and de-duplicated (same from, to, type and date). */
+export function parseRelations(v: unknown): QuanHe[] {
+  const seen = new Set<string>();
+  const out: QuanHe[] = [];
+  for (const q of arr(v)) {
+    if (!isObj(q) || typeof q.tu_id !== "string" || !RELATIONS.has(q.loai as LoaiQuanHe)) continue;
+    const rel: QuanHe = {
+      tu_id: q.tu_id,
       den_id: str(q.den_id),
       loai: q.loai as LoaiQuanHe,
       hieu_luc_tu: str(q.hieu_luc_tu),
-    }));
+    };
+    if (isIsoDate(q.ngay_ban_hanh)) rel.ngay_ban_hanh = q.ngay_ban_hanh;
+    if (typeof q.pham_vi === "string" && q.pham_vi) rel.pham_vi = q.pham_vi.slice(0, 300);
+    if (typeof q.hoi_to === "boolean") rel.hoi_to = q.hoi_to;
+    const key = `${rel.tu_id}|${rel.den_id}|${rel.loai}|${rel.hieu_luc_tu}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(rel);
+  }
+  return out;
+}
+
+/** `vi_tri_nguon: [{trang, trang_nguon, nguon_pdf}]` → the first location, validated. */
+function sourceLocation(v: unknown): { nguon_pdf?: string; trang_nguon?: number } {
+  const first = arr(v).find(isObj);
+  if (!first) return {};
+  const pdf = typeof first.nguon_pdf === "string" ? first.nguon_pdf : "";
+  return {
+    nguon_pdf: /^https?:\/\//i.test(pdf) ? pdf : undefined,
+    trang_nguon:
+      typeof first.trang_nguon === "number" && first.trang_nguon > 0
+        ? first.trang_nguon
+        : undefined,
+  };
+}
+
+function isoOrUndefined(v: unknown): IsoDate | undefined {
+  return isIsoDate(v) ? v : undefined;
 }
 
 /* ── POST /ask (+ run) → AskResult ─────────────────────────────────────────────────────────── */
@@ -187,7 +255,7 @@ export function adaptAsk(raw: unknown, runRaw: unknown): AskResult {
     (p): p is string => typeof p === "string",
   );
 
-  const views: Record<string, CitationView> = {};
+  const views: CitationView[] = [];
   const trich_dan: TrichDan[] = [];
   for (const c of arr(raw.trich_dan)) {
     if (!isObj(c) || typeof c.id !== "string") continue;
@@ -199,7 +267,10 @@ export function adaptAsk(raw: unknown, runRaw: unknown): AskResult {
       : {};
     const art = fromRead.dieu ? fromRead : articleFromId(id);
     trich_dan.push({ id, cau_trich: str(c.cau_trich), trang: num(c.trang) });
-    views[id] = {
+    const loc = sourceLocation(c.vi_tri_nguon ?? read?.vi_tri_nguon);
+    // Newer backend: grouped relations; older: chuoi_sua_doi only (relations acting on it).
+    const amendedBy = c.bi_sua_doi_boi !== undefined ? parseRelations(c.bi_sua_doi_boi) : undefined;
+    const view: CitationView = {
       id,
       cau_trich: str(c.cau_trich),
       trang: num(c.trang, num(read?.trang)),
@@ -209,13 +280,21 @@ export function adaptAsk(raw: unknown, runRaw: unknown): AskResult {
         strOrNull(c.ten_van_ban) ?? (read ? (strOrNull(read.ten_van_ban) ?? undefined) : undefined),
       nguon_url:
         strOrNull(c.nguon_url) ?? (read ? (strOrNull(read.nguon_url) ?? undefined) : undefined),
+      ngay_ban_hanh: isoOrUndefined(c.ngay_ban_hanh),
+      hieu_luc_tu: isoOrUndefined(c.hieu_luc_tu),
       dieu: art.dieu,
       khoan: art.khoan,
       noi_dung: read ? (strOrNull(read.noi_dung) ?? undefined) : undefined,
       trang_thai: statusFromTinhTrang(tinh),
       tinh_trang_text: tinh || undefined,
-      quan_he: parseRelations(c.chuoi_sua_doi),
+      quan_he: amendedBy ?? parseRelations(c.chuoi_sua_doi),
     };
+    if (c.het_hieu_luc === null || isIsoDate(c.het_hieu_luc)) view.het_hieu_luc = c.het_hieu_luc;
+    if (loc.nguon_pdf) view.nguon_pdf = loc.nguon_pdf;
+    if (loc.trang_nguon) view.trang_nguon = loc.trang_nguon;
+    if (c.sua_doi_toi !== undefined) view.sua_doi_toi = parseRelations(c.sua_doi_toi);
+    if (c.dan_chieu !== undefined) view.dan_chieu = parseRelations(c.dan_chieu);
+    views.push(view);
   }
 
   const checklist: ChecklistItem[] = arr(raw.checklist)
@@ -261,6 +340,8 @@ export function viewFromDetail(
     hieu_luc_tu: vb.hieu_luc_tu,
     het_hieu_luc: vb.het_hieu_luc,
     nguon_url: vb.nguon_url,
+    nguon_pdf: d.dieu_khoan.nguon_pdf,
+    trang_nguon: d.dieu_khoan.trang_nguon,
     dieu: String(d.dieu_khoan.dieu),
     khoan: d.dieu_khoan.khoan === null ? undefined : String(d.dieu_khoan.khoan),
     noi_dung: d.dieu_khoan.noi_dung,
@@ -274,7 +355,6 @@ export function mockResult(
   detail: (id: string) => ChiTietDieuKhoan | null,
   applied: IsoDate,
 ): AskResult {
-  const views: Record<string, CitationView> = {};
-  for (const t of response.trich_dan) views[t.id] = viewFromDetail(t, detail(t.id), applied);
+  const views = response.trich_dan.map((t) => viewFromDetail(t, detail(t.id), applied));
   return { response, views, meta: {} };
 }

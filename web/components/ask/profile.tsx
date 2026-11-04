@@ -28,10 +28,11 @@ export function ProfileChip({
       onClick={onEdit}
       data-film={film}
       aria-label={`${t.profile.chipLabel}: ${t.profile.loai[hoSo.loai_hinh]}, ${hoSo.nganh}, ${revenue}${t.profile.perYear}, ${hoSo.dia_ban}. ${t.profile.edit}`}
-      className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border border-brand/20 bg-brand-tint px-3 text-left text-sm text-brand transition-colors hover:border-brand/40"
+      className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border border-brand/20 bg-brand-tint px-3 text-left text-sm text-brand transition-colors hover:border-brand/40 max-sm:rounded-2xl max-sm:py-1.5"
     >
       <Store aria-hidden className="size-4 shrink-0" />
-      <span className="truncate">
+      {/* <640 the chip wraps instead of truncating, so the revenue stays readable. */}
+      <span className="truncate max-sm:overflow-visible max-sm:whitespace-normal">
         <span className="font-semibold">{t.profile.loai[hoSo.loai_hinh]}</span>
         <span className="text-ink-2"> · {hoSo.nganh} · </span>
         <span className="font-medium tabular-nums">

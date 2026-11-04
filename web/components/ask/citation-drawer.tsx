@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useT } from "@/components/providers";
 import { usingMock } from "@/lib/api/client";
-import type { IsoDate, LanKiemChung, LoaiQuanHe, QuanHe } from "@/lib/api/contract";
+import type { CitationView, IsoDate, LanKiemChung, LoaiQuanHe, QuanHe } from "@/lib/api/contract";
 import { articleLabel, compareIso, docLabel, formatDate } from "@/lib/format";
 import { appliesFrom, isRetroactive } from "@/lib/legal-status";
 import { StatusBadge } from "../status";
@@ -62,38 +62,135 @@ const REL_STYLE: Record<LoaiQuanHe, { icon: LucideIcon; cls: string }> = {
   dan_chieu: { icon: Link2, cls: "text-ink-2" },
 };
 
-/**
- * The real backend returns only the direct relations acting on a provision (no document dates),
- * so the drawer lists them instead of drawing the full chain.
- */
-function RelationList({ relations, applied }: { relations: QuanHe[]; applied: IsoDate }) {
+function dedupe(relations: QuanHe[]): QuanHe[] {
+  const seen = new Set<string>();
+  return relations.filter((r) => {
+    const k = `${r.tu_id}|${r.den_id}|${r.loai}|${r.hieu_luc_tu}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+/** One group of relations. `outgoing`: this provision acts on others (shows `den_id`). */
+function RelationGroup({
+  title,
+  relations,
+  applied,
+  outgoing = false,
+  film,
+}: {
+  title: string;
+  relations: QuanHe[];
+  applied: IsoDate;
+  outgoing?: boolean;
+  film: string;
+}) {
   const t = useT();
-  if (relations.length === 0) return <p className="text-sm text-ink-3">{t.drawer.noRelations}</p>;
   return (
-    <ul data-film="relation-list" className="flex flex-col gap-2">
-      {relations.map((r) => {
-        const s = REL_STYLE[r.loai];
-        const Icon = s.icon;
-        const known = ISO.test(r.hieu_luc_tu);
-        const applies = !known || compareIso(r.hieu_luc_tu, applied) <= 0;
-        return (
-          <li
-            key={`${r.tu_id}|${r.loai}|${r.hieu_luc_tu}`}
-            className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-line px-3 py-2 text-sm"
-          >
-            <Icon aria-hidden className={cn("size-4 shrink-0", s.cls)} />
-            <span className={cn("font-medium", s.cls)}>{t.relationBy[r.loai]}</span>
-            <span className="font-mono text-xs text-ink">{r.tu_id}</span>
-            {known && (
-              <span className="font-mono text-xs text-ink-3 tabular-nums">
-                {t.drawer.relFrom(formatDate(r.hieu_luc_tu))}
+    <div className="flex flex-col gap-2">
+      <h4 className="text-xs font-semibold text-ink-3">{title}</h4>
+      <ul data-film={film} className="flex flex-col gap-2">
+        {relations.map((r, i) => {
+          const s = REL_STYLE[r.loai];
+          const Icon = s.icon;
+          const known = ISO.test(r.hieu_luc_tu);
+          const applies = !known || compareIso(r.hieu_luc_tu, applied) <= 0;
+          const issued = r.ngay_ban_hanh && ISO.test(r.ngay_ban_hanh) ? r.ngay_ban_hanh : null;
+          const retro =
+            r.hoi_to === true ||
+            (issued !== null && known && compareIso(issued, r.hieu_luc_tu) > 0);
+          return (
+            <li
+              // biome-ignore lint/suspicious/noArrayIndexKey: index disambiguates repeated relations
+              key={`${r.tu_id}|${r.den_id}|${r.loai}|${r.hieu_luc_tu}|${i}`}
+              className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-line px-3 py-2 text-sm"
+            >
+              <Icon aria-hidden className={cn("size-4 shrink-0", s.cls)} />
+              <span className={cn("font-medium", s.cls)}>
+                {outgoing ? t.relation[r.loai] : t.relationBy[r.loai]}
               </span>
-            )}
-            {!applies && <span className="text-xs text-ink-3">· {t.drawer.relPending}</span>}
-          </li>
-        );
-      })}
-    </ul>
+              <span className="font-mono text-xs text-ink">{outgoing ? r.den_id : r.tu_id}</span>
+              {known && (
+                <span className="font-mono text-xs text-ink-3 tabular-nums">
+                  {t.drawer.relFrom(formatDate(r.hieu_luc_tu))}
+                </span>
+              )}
+              {issued && (
+                <span className="font-mono text-xs text-ink-3 tabular-nums">
+                  ·{" "}
+                  {retro
+                    ? t.drawer.issuedRetro(formatDate(issued))
+                    : `${t.drawer.issued} ${formatDate(issued)}`}
+                </span>
+              )}
+              {!issued && r.hoi_to === true && (
+                <span className="text-xs text-ink-3">· {t.drawer.retroOnly}</span>
+              )}
+              {!applies && <span className="text-xs text-ink-3">· {t.drawer.relPending}</span>}
+              {r.pham_vi && (
+                <span lang="vi" className="basis-full text-xs text-ink-2">
+                  {r.pham_vi}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * The real backend returns the direct relations of a provision rather than a document chain, so
+ * the drawer lists them in groups: amended by · amends · referred to by.
+ */
+function RelationList({
+  view,
+  applied,
+}: {
+  view: Pick<CitationView, "quan_he" | "sua_doi_toi" | "dan_chieu">;
+  applied: IsoDate;
+}) {
+  const t = useT();
+  const acting = view.quan_he ?? [];
+  // Older backends mix references into chuoi_sua_doi; newer ones send `dan_chieu` separately.
+  const amendedBy = dedupe(acting.filter((r) => r.loai !== "dan_chieu"));
+  const referredBy = dedupe([
+    ...acting.filter((r) => r.loai === "dan_chieu"),
+    ...(view.dan_chieu ?? []),
+  ]);
+  const amends = dedupe(view.sua_doi_toi ?? []);
+  if (amendedBy.length + referredBy.length + amends.length === 0)
+    return <p className="text-sm text-ink-3">{t.drawer.noRelations}</p>;
+  return (
+    <div data-film="relation-list" className="flex flex-col gap-4">
+      {amendedBy.length > 0 && (
+        <RelationGroup
+          title={t.drawer.amendedBy}
+          relations={amendedBy}
+          applied={applied}
+          film="relation-amended-by"
+        />
+      )}
+      {amends.length > 0 && (
+        <RelationGroup
+          title={t.drawer.amends}
+          relations={amends}
+          applied={applied}
+          outgoing
+          film="relation-amends"
+        />
+      )}
+      {referredBy.length > 0 && (
+        <RelationGroup
+          title={t.drawer.referredBy}
+          relations={referredBy}
+          applied={applied}
+          film="relation-referred-by"
+        />
+      )}
+    </div>
   );
 }
 
@@ -215,16 +312,33 @@ export function CitationDrawer({
                 “{v.cau_trich}”
               </p>
             )}
-            {v.nguon_url && (
-              <a
-                href={v.nguon_url}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand underline-offset-4 hover:underline"
-              >
-                {t.drawer.source}
-                <ExternalLink aria-hidden className="size-4" />
-              </a>
+            {(v.nguon_pdf || v.nguon_url) && (
+              <div className="mt-2 flex flex-wrap gap-x-4">
+                {v.nguon_pdf && (
+                  <a
+                    href={v.nguon_pdf}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-film="drawer-source-pdf"
+                    className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand underline-offset-4 hover:underline"
+                  >
+                    {t.drawer.sourcePdf(v.trang_nguon ?? v.trang)}
+                    <ExternalLink aria-hidden className="size-4" />
+                  </a>
+                )}
+                {v.nguon_url && v.nguon_url !== v.nguon_pdf && (
+                  <a
+                    href={v.nguon_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-film="drawer-source"
+                    className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand underline-offset-4 hover:underline"
+                  >
+                    {v.nguon_pdf ? t.drawer.sourcePage : t.drawer.source}
+                    <ExternalLink aria-hidden className="size-4" />
+                  </a>
+                )}
+              </div>
             )}
             {!v.noi_dung && !v.so_hieu && (
               <p className="mt-2 text-sm text-ink-3">{t.drawer.noDetail}</p>
@@ -240,10 +354,10 @@ export function CitationDrawer({
               <AmendmentChain chain={v.chuoi} applied={applied} citedSoHieu={v.so_hieu} />
             </section>
           ) : (
-            v.quan_he && (
+            (v.quan_he || v.sua_doi_toi || v.dan_chieu) && (
               <section>
                 <h3 className="mb-2 text-sm font-semibold text-ink-2">{t.drawer.relations}</h3>
-                <RelationList relations={v.quan_he} applied={applied} />
+                <RelationList view={v} applied={applied} />
               </section>
             )
           )}
@@ -255,6 +369,7 @@ export function CitationDrawer({
             play={false}
             filmPrefix="drawer-"
             heading="h3"
+            landmark={false}
           />
         </div>
       )}

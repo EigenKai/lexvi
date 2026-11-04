@@ -1,16 +1,22 @@
 "use client";
 
 import { FlaskConical, Info } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useT } from "@/components/providers";
 import { usingMock } from "@/lib/api/client";
 
+/** Screens whose content never comes from the mock (the benchmark shows real eval results). */
+const REAL_DATA_ROUTES = ["/kiem-thu", "/ho-so"];
+
 /**
  * DESIGN.md §4.13 — persistent, every app screen, not dismissible.
- * While the app runs on mocks it also carries an "illustrative data" flag, so mock output is
- * marked in every frame of a recording, not only at the top of the page (constraints.md).
+ * While the app runs on mocks it also carries a "prepared example" flag on the screens that show
+ * mock answers, so mock output is marked in every frame of a recording (constraints.md).
  */
 export function DisclaimerBar() {
   const t = useT();
+  const path = usePathname();
+  const showMockFlag = usingMock && !REAL_DATA_ROUTES.includes(path);
   return (
     <div
       data-film="disclaimer"
@@ -21,7 +27,7 @@ export function DisclaimerBar() {
       <p>
         <span className="max-sm:hidden">{t.disclaimer.full}</span>
         <span className="sm:hidden">{t.disclaimer.short}</span>
-        {usingMock && (
+        {showMockFlag && (
           <span
             data-film="mock-flag"
             className="ml-2 inline-flex items-center gap-1 rounded-full border border-dashed border-line-strong px-2 align-middle text-xs font-medium whitespace-nowrap"

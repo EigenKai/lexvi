@@ -1,3 +1,4 @@
+import { isIsoDate } from "../format";
 import { adaptAsk, mockResult } from "./adapter";
 import type {
   AskRequest,
@@ -17,7 +18,8 @@ import { isObj, str } from "./util";
  * The backend must allow this origin via CORS (JSON POST → preflight OPTIONS).
  */
 const API_URL = process.env.NEXT_PUBLIC_LEXVI_API_URL?.trim().replace(/\/+$/, "") || null;
-const TIMEOUT_MS = Number(process.env.NEXT_PUBLIC_LEXVI_API_TIMEOUT_MS) || 60_000;
+// The real /ask takes 30–90 s and /ingest ~45 s or more, so the default leaves headroom.
+const TIMEOUT_MS = Number(process.env.NEXT_PUBLIC_LEXVI_API_TIMEOUT_MS) || 180_000;
 
 export const usingMock = API_URL === null;
 
@@ -27,12 +29,20 @@ export interface ClientOptions {
   signal?: AbortSignal;
 }
 
+/**
+ * What went wrong, as a code the screens map to i18n messages. Never shown raw:
+ * - needs-file: the real backend needs a PDF;
+ * - http: the server answered with an error status (`status`);
+ * - bad-response: the body was not the expected shape.
+ */
+export type ApiErrorCode = "needs-file" | "http" | "bad-response";
+
 export class ApiError extends Error {
   constructor(
-    message: string,
+    readonly code: ApiErrorCode,
     readonly status?: number,
   ) {
-    super(message);
+    super(status ? `${code} ${status}` : code);
     this.name = "ApiError";
   }
 }
@@ -78,9 +88,11 @@ export async function ask(req: AskRequest, opts: ClientOptions): Promise<AskResu
       // Bounded diagnostics only (status + request id), never the response body.
       const requestId = res.headers.get("x-request-id");
       console.warn(`/ask failed: ${res.status}${requestId ? ` (request ${requestId})` : ""}`);
-      throw new ApiError(`/ask ${res.status}`, res.status);
+      throw new ApiError("http", res.status);
     }
-    const raw: unknown = await res.json();
+    const raw: unknown = await res.json().catch(() => {
+      throw new ApiError("bad-response");
+    });
     const runId = isObj(raw) && typeof raw.run_id === "string" ? raw.run_id : null;
     let run: unknown = null;
     if (runId && /^[0-9a-f]{12}$/.test(runId)) {
@@ -118,7 +130,7 @@ function parseChange(c: Record<string, unknown>): ThayDoi | null {
 
 /** Untrusted (model output): validate, drop malformed rows, default arrays. */
 export function parseIngestResponse(raw: unknown): IngestResponse {
-  if (!isObj(raw) || !isObj(raw.van_ban_moi)) throw new ApiError("/ingest: missing van_ban_moi");
+  if (!isObj(raw) || !isObj(raw.van_ban_moi)) throw new ApiError("bad-response");
   const vb = raw.van_ban_moi;
   const affected: DieuBiAnhHuong[] = (
     Array.isArray(raw.dieu_bi_anh_huong) ? raw.dieu_bi_anh_huong : []
@@ -152,6 +164,7 @@ export function parseIngestResponse(raw: unknown): IngestResponse {
       so_hieu: str(vb.so_hieu),
       tieu_de: str(vb.tieu_de),
       hieu_luc_tu: str(vb.hieu_luc_tu),
+      ...(isIsoDate(vb.ngay_ban_hanh) ? { ngay_ban_hanh: vb.ngay_ban_hanh } : {}),
     },
     dieu_bi_anh_huong: affected,
     viec_can_lam: tasks,
@@ -171,6 +184,7 @@ export async function ingest(
 ): Promise<IngestResponse> {
   if (API_URL) {
     if (!file) throw new ApiError("needs-file");
+    if (file.size > MAX_PDF_BYTES) throw new ApiError("http", 413);
     const body = new FormData();
     body.append("pdf", file);
     body.append("ho_so", JSON.stringify(hoSo));
@@ -181,8 +195,7 @@ export async function ingest(
     });
     if (!res.ok) {
       const requestId = res.headers.get("x-request-id");
-      console.warn(`/ingest failed: ${res.status}${requestId ? ` (request ${requestId})` : ""}`);
-      // FastAPI puts a short, user-facing Vietnamese reason in `detail` for 400/422.
+      // FastAPI's `detail` is a developer-facing reason: log it (bounded), never show it raw.
       let detail = "";
       try {
         const j: unknown = await res.json();
@@ -190,9 +203,15 @@ export async function ingest(
       } catch {
         // no JSON body
       }
-      throw new ApiError(detail || `/ingest ${res.status}`, res.status);
+      console.warn(
+        `/ingest failed: ${res.status}${requestId ? ` (request ${requestId})` : ""}${detail ? ` — ${detail}` : ""}`,
+      );
+      throw new ApiError("http", res.status);
     }
-    return parseIngestResponse(await res.json());
+    const raw: unknown = await res.json().catch(() => {
+      throw new ApiError("bad-response");
+    });
+    return parseIngestResponse(raw);
   }
   await wait(opts.latencyMs, opts.signal);
   return mockIngest(hoSo);
@@ -270,7 +289,7 @@ export async function readImage(image: Blob, signal?: AbortSignal): Promise<Phot
     la_giay_to_thue: j.la_giay_to_thue === true,
     loai_giay_to: str(j.loai_giay_to),
     tom_tat: str(j.tom_tat),
-    ngay_tren_giay: /^\d{4}-\d{2}-\d{2}$/.test(str(j.ngay_tren_giay)) ? str(j.ngay_tren_giay) : "",
+    ngay_tren_giay: isIsoDate(j.ngay_tren_giay) ? j.ngay_tren_giay : "",
     cau_hoi_goi_y: str(j.cau_hoi_goi_y),
   };
 }

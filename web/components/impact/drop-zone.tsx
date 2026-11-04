@@ -5,7 +5,7 @@ import { FileText, FileUp, Loader2, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useId, useRef, useState } from "react";
 import { useT } from "@/components/providers";
-import { MAX_PDF_BYTES, usingMock } from "@/lib/api/client";
+import { MAX_PDF_BYTES } from "@/lib/api/client";
 
 /** True when the first bytes are "%PDF" (the backend checks the same). */
 async function looksLikePdf(file: File): Promise<boolean> {
@@ -74,20 +74,18 @@ export function DropZone({
           <FileText aria-hidden className="size-4" />
           {t.impact.choose}
         </button>
-        {usingMock && (
-          <button
-            type="button"
-            onClick={() => {
-              setError(null);
-              onSample();
-            }}
-            data-film="sample-button"
-            className="inline-flex min-h-11 items-center gap-2 rounded-md border border-line-strong bg-surface px-4 font-medium text-ink transition-[background-color,transform] duration-[120ms] hover:bg-surface-sunk active:scale-[0.97]"
-          >
-            <Sparkles aria-hidden className="size-4 text-brand" />
-            {t.impact.sample}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            setError(null);
+            onSample();
+          }}
+          data-film="sample-button"
+          className="inline-flex min-h-11 items-center gap-2 rounded-md border border-line-strong bg-surface px-4 font-medium text-ink transition-[background-color,transform] duration-[120ms] hover:bg-surface-sunk active:scale-[0.97]"
+        >
+          <Sparkles aria-hidden className="size-4 text-brand" />
+          {t.impact.sample}
+        </button>
       </div>
       <input
         ref={input}

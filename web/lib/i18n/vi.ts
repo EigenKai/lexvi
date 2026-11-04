@@ -33,9 +33,12 @@ export const vi = {
   /** Shown only in the English UI; empty in Vietnamese. */
   sourceNote: "",
 
-  mockBadge: "Dữ liệu minh hoạ · chưa kết nối máy chủ",
-  mockNote: "Các con số, điều khoản và hạn trong bản mẫu này chưa được đối chiếu với văn bản gốc.",
-  mockFlag: "Dữ liệu minh hoạ",
+  skipToContent: "Chuyển tới nội dung chính",
+
+  mockBadge: "Phản hồi mẫu chuẩn bị sẵn · không phải kết quả trực tiếp",
+  mockNote:
+    "Dựng từ kho văn bản thật: nội dung điều khoản trích nguyên văn từ PDF chính thức, nhưng câu trả lời được chuẩn bị cho bản demo, không do hệ thống tạo trực tiếp.",
+  mockFlag: "Phản hồi mẫu",
   openArticle: "Mở điều khoản",
   answerReady: "Đã có câu trả lời.",
 
@@ -50,6 +53,7 @@ export const vi = {
     suggestions: "Câu hỏi mẫu",
     searching: "Đang tìm điều khoản theo ngày áp dụng…",
     error: "Không lấy được câu trả lời. Hãy thử lại.",
+    errTimeout: "Máy chủ trả lời quá lâu. Hãy thử lại.",
     empty: "Nhập câu hỏi hoặc chọn một câu hỏi mẫu để bắt đầu.",
     elapsed: (s: number) => `${s} giây`,
     runMeta: (steps: number, secs: number) => `${steps} bước · ${secs} giây`,
@@ -66,7 +70,8 @@ export const vi = {
     idle: "Hỏi bằng giọng nói",
     listening: "Đang nghe…",
     transcribing: "Đang chuyển giọng nói thành chữ…",
-    error: "Không nhận được giọng nói — hãy gõ câu hỏi",
+    error: "Không chuyển được giọng nói — hãy thử lại hoặc gõ câu hỏi",
+    canned: "Bản ghi âm mẫu — không phải chuyển giọng nói trực tiếp",
     stop: "Dừng ghi âm",
     seconds: (s: number, max: number) => `${s}/${max} giây`,
     denied: "Trình duyệt chưa cho phép dùng micro — hãy cho phép hoặc gõ câu hỏi.",
@@ -83,6 +88,7 @@ export const vi = {
     remove: "Bỏ ảnh",
     reading: "Đang đọc ảnh…",
     readBy: "Muse Spark đọc từ ảnh — hãy đối chiếu với giấy gốc.",
+    canned: "Kết quả đọc ảnh mẫu — không phải đọc trực tiếp",
     notTax: "Ảnh này có vẻ không phải giấy tờ thuế.",
     dateFound: (d: string) => `Ngày trên giấy: ${d}`,
     useQuestion: "Dùng câu hỏi này",
@@ -183,6 +189,12 @@ export const vi = {
     stillInForce: "—",
     page: "Trang",
     source: "Xem văn bản gốc",
+    sourcePdf: (page: number) => `PDF gốc, trang ${page}`,
+    sourcePage: "Trang văn bản",
+    amendedBy: "Bị sửa đổi bởi",
+    amends: "Sửa đổi",
+    referredBy: "Được dẫn chiếu bởi",
+    retroOnly: "áp dụng hồi tố",
     quote: "Câu được trích",
     articleText: "Nội dung điều khoản",
     chain: "Chuỗi sửa đổi",
@@ -190,7 +202,7 @@ export const vi = {
     issuedRetro: (issued: string) => `ban hành ${issued} · áp dụng hồi tố`,
     retroactive: (issued: string, from: string) =>
       `Ban hành ${issued}, sau ngày áp dụng, nhưng có hiệu lực hồi tố từ ${from}. Cách tính hồi tố cần thống nhất với kế toán.`,
-    illustrative: "Nội dung minh hoạ — chưa đối chiếu văn bản gốc",
+    illustrative: "Phản hồi mẫu — nội dung điều khoản trích nguyên văn từ PDF chính thức",
     loading: "Đang tải điều khoản…",
     noDetail: "Máy chủ chưa trả về chi tiết điều khoản.",
   },
@@ -218,8 +230,12 @@ export const vi = {
     errNotPdf: "Tệp này không phải PDF. Hãy chọn một tệp PDF có lớp chữ.",
     errTooBig: "Tệp lớn hơn 20 MB.",
     errFailed: "Không đọc được văn bản. Hãy thử lại.",
-    errNeedFile: "Máy chủ cần một tệp PDF thật; văn bản mẫu chỉ dùng khi chạy dữ liệu minh hoạ.",
-    newDoc: "Văn bản mới",
+    errNeedFile: "Máy chủ cần một tệp PDF. Hãy chọn một tệp PDF có lớp chữ.",
+    replay: (n: string) =>
+      `Phát lại lịch sử: ${/NĐ/.test(n) ? "Nghị định" : "văn bản"} ${n} được bổ sung vào kho`,
+    issued: (d: string) => `Ban hành ${d}`,
+    retroactive: (issued: string, from: string) =>
+      `Ban hành ${issued}, nhưng áp dụng hồi tố từ ${from}. Cách tính hồi tố cần thống nhất với kế toán.`,
     appliesFrom: (d: string) => `Áp dụng từ ${d}`,
     affectedCount: (n: number, total: number) =>
       `${n}/${total} thay đổi ảnh hưởng tới quán của bạn`,
@@ -241,8 +257,14 @@ export const vi = {
     subtitle:
       "Cùng bộ câu hỏi, cùng kho điều khoản, cùng mô hình. Kết quả là số câu đếm được, không dùng phần trăm.",
     emptyTitle: "Chưa có kết quả",
-    emptyBody:
-      "Kết quả sẽ có sau khi chạy scripts/run_eval.py trên bộ câu hỏi do nhóm soạn, khi kho điều khoản đã được nạp.",
+    emptyBody: "Kết quả sẽ có sau khi chạy scripts/run_eval.py trên bộ câu hỏi do nhóm soạn.",
+    byConstruction:
+      "Bước nộp câu trả lời của LexVi từ chối trích dẫn không còn hiệu lực, nên số lần LexVi «dẫn điều cũ» bằng 0 theo thiết kế.",
+    extra: {
+      loi: "Lần chạy bị lỗi",
+      khong_tra_loi: "Không đưa ra câu trả lời",
+      id_bia: "Trích mã điều khoản không tồn tại",
+    },
     rag: "RAG thường",
     lexvi: "LexVi",
     lower: "càng thấp càng tốt",

@@ -15,6 +15,8 @@ import { fileURLToPath } from "node:url";
 const web = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repo = resolve(web, "..");
 const METRICS = ["dan_dieu_cu", "dung_can_cu", "trich_sai", "can_xac_nhan"];
+// Optional summary keys (newer run_eval.py): crashes, no answer, invented provision ids.
+const EXTRAS = ["loi", "khong_tra_loi", "id_bia"];
 
 function newestResults() {
   const dir = join(repo, "eval");
@@ -66,6 +68,8 @@ for (const r of results.rows ?? []) {
     lexvi: {},
   };
   row[r.he] = Object.fromEntries(METRICS.map((m) => [m, r[m] === true]));
+  // A crashed run: keep the flag only, not the error text.
+  if (r.loi === true || (typeof r.loi === "string" && r.loi !== "")) row[r.he].loi = true;
   byQuestion.set(r.cau, row);
 }
 
@@ -77,9 +81,18 @@ const out = {
     ? `${stamp[1].slice(0, 4)}-${stamp[1].slice(4, 6)}-${stamp[1].slice(6, 8)}`
     : new Date(statSync(src).mtimeMs).toISOString().slice(0, 10),
   source_file: basename(src),
-  model: process.env.MODEL_API_MODEL || "muse-spark-1.3",
+  model:
+    (typeof results.model === "string" && results.model) ||
+    process.env.MODEL_API_MODEL ||
+    "muse-spark-1.3",
   n,
-  summary: results.summary,
+  summary: Object.fromEntries(
+    ["rag_thuong", "lexvi"].map((sys) => {
+      const s = results.summary[sys];
+      const keep = [...METRICS, ...EXTRAS].filter((k) => /^\d+\/\d+$/.test(String(s?.[k] ?? "")));
+      return [sys, Object.fromEntries(keep.map((k) => [k, s[k]]))];
+    }),
+  ),
   rows: [...byQuestion.values()].sort((a, b) => a.cau - b.cau),
 };
 const dest = join(web, "lib", "benchmark", "results.json");
