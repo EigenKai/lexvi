@@ -9,6 +9,67 @@ import re
 from scripts.build_data import dump
 from scripts.fetch_official import DATA
 
+QA_NOTE = "Thêm bởi QA vai trò C — chờ Dũng duyệt"
+# Decree 70/2025 Art. 1 items: "N. <verbs and targets> như sau:".
+_TOKEN = re.compile(r"sửa đổi tên|sửa đổi, bổ sung|sửa đổi|bổ sung|vào sau|vào|điểm \w+|khoản \w+|Điều \w+", re.I)
+
+
+def item_header(text):
+    """The verbatim heading of an amending item, up to and including "như sau:"."""
+    return text[:text.index("như sau:") + len("như sau:")]
+
+
+def decree70_targets(by, prefix="70-2025-ND-CP-D1-K", target_doc="123-2020-ND-CP"):
+    """Edges from each numbered item of Decree 70 Art. 1 to the provisions of Decree 123 it edits.
+
+    Read from the item's own heading. Scope: "toan_muc" when a whole clause or article is
+    rewritten, "mot_phan" when only points (điểm) of a clause change, "bo_sung" when something is
+    only added into a clause or article. A name-only change of an article, and a new article
+    inserted after another, target no existing stored text and are skipped (listed).
+    """
+    found, skipped = [], []
+    k = 1
+    while prefix + str(k) in by:
+        source = prefix + str(k)
+        header = item_header(by[source]["noi_dung"])
+        verb, into, after, into_clause, points, pending = None, False, False, False, False, []
+        for token in (t.lower() for t in _TOKEN.findall(header)):
+            kind, _, number = token.partition(" ")
+            if token in ("sửa đổi tên", "sửa đổi, bổ sung", "sửa đổi", "bổ sung"):
+                verb, into, after, into_clause, points = token, False, False, False, False
+            elif token in ("vào", "vào sau"):
+                into, after = True, token == "vào sau"
+            elif kind == "điểm":
+                points = True
+            elif kind == "khoản":
+                if verb == "bổ sung":
+                    if into:  # the clause something is added into (or after: then the article)
+                        pending.append((None if after else number, "bo_sung"))
+                        into_clause = True
+                else:
+                    pending.append((number, "mot_phan" if points else "toan_muc"))
+                points = False
+            elif kind == "điều":
+                if verb == "sửa đổi tên":
+                    skipped.append((source, f"đổi tên Điều {number}: không tạo cạnh riêng cho tên điều"))
+                elif verb == "bổ sung" and not into:
+                    pass  # a new article ("Bổ sung Điều 22a"); its anchor follows "vào sau"
+                elif verb == "bổ sung" and after and not into_clause:
+                    skipped.append((source, f"thêm điều mới sau Điều {number}, không sửa văn bản đã lưu"))
+                elif verb == "bổ sung" and not into_clause:
+                    pending.append((None, "bo_sung"))
+                elif verb != "bổ sung" and not pending:
+                    pending.append((None, "toan_muc"))
+                for clause, scope in pending:
+                    target = f"{target_doc}-D{number}" + (f"-K{clause}" if clause else "")
+                    if target in by:
+                        found.append((source, target, scope))
+                    else:
+                        skipped.append((source, f"không có {target} trong kho"))
+                pending = []
+        k += 1
+    return found, skipped
+
 
 def main():
     docs = json.loads((DATA / "sources.json").read_text(encoding="utf-8"))
@@ -75,7 +136,9 @@ def main():
     edge("09-2026-QH16-D2", "149-2025-QH15-D1-K1", scope="mot_phan", note="Chỉ phần điểm b về khoản 25; phần điểm a cần đọc riêng khi bổ sung điểm.")
     edge("09-2026-QH16-D3", "67-2025-QH15-D4", scope="bo_sung")
     for target in ["D3", "D4", "D8-K1", "D9", "D10", "D11-K3", "D12-K1", "D12-K2", "D17-K4", "D18-K3"]:
-        edge("141-2026-ND-CP-D1-K1", "68-2026-ND-CP-" + target, note="Thay cụm 500 triệu bằng 01 tỷ, hiệu lực hồi tố theo Điều 3.")
+        edge("141-2026-ND-CP-D1-K1", "68-2026-ND-CP-" + target, scope="thay_cum_tu",
+             note="Thay cụm 500 triệu bằng 01 tỷ, hiệu lực hồi tố theo Điều 3. Phạm vi thay_cum_tu: "
+                  "phần còn lại của khoản cũ vẫn áp dụng khi đọc kèm khoản 1 Điều 1 Nghị định 141. " + QA_NOTE)
     edge("141-2026-ND-CP-D1-K2", "68-2026-ND-CP-D8-K5")
     edge("141-2026-ND-CP-D2", "320-2025-ND-CP-D4", scope="bo_sung")
     edge("50-2026-TT-BTC-D1", "18-2026-TT-BTC-D1")
@@ -91,6 +154,12 @@ def main():
     for target in ["123/2020/NĐ-CP", "70/2025/NĐ-CP"]:
         edge("254-2026-ND-CP-D43-K2", target, "thay_the")
     edge("70-2025-ND-CP-D1-K8", "123-2020-ND-CP-D11")
+    targets, skipped = decree70_targets(by)
+    for source, target, scope in targets:
+        edge(source, target, start="2025-06-01", scope=scope, quote=item_header(by[source]["noi_dung"]),
+             note="Sinh từ tiêu đề mục sửa đổi của Điều 1 Nghị định 70. " + QA_NOTE)
+    for source, why in skipped:
+        print("Bỏ qua", source, "-", why)
     edge("91-2026-TT-BTC-D25-K2", "32/2025/TT-BTC", "thay_the")
     edge("359-2025-ND-CP-D1-K1", "181-2025-ND-CP-D4", scope="bo_sung")
     for target in ["181-2025-ND-CP-D37-K3", "181-2025-ND-CP-D39-K3"]:
