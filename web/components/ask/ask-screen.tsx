@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useProfile, useT } from "@/components/providers";
 import { LiveBanner } from "@/components/shell/live-banner";
 import { MockBanner } from "@/components/shell/mock-banner";
-import { ApiError, ask } from "@/lib/api/client";
+import { ApiError, ask, usingMock } from "@/lib/api/client";
 import type { AskResponseMoRong, HoSo, IsoDate, RunMeta } from "@/lib/api/contract";
 import { mockSuggestions } from "@/lib/api/mock";
 import { type FilmConfig, readFilmConfig } from "@/lib/film";
@@ -233,8 +233,11 @@ export function AskScreen() {
                     type="button"
                     data-film={`suggestion-${i}`}
                     onClick={() => {
-                      setQuestion(s);
-                      void run(s, applied, hoSo);
+                      // The live backend reads Vietnamese law in Vietnamese: send the Vietnamese
+                      // wording of the sample (same index) whatever the interface language.
+                      const q = usingMock ? s : (mockSuggestions("vi")[i] ?? s);
+                      setQuestion(q);
+                      void run(q, applied, hoSo);
                     }}
                     className="min-h-11 w-full rounded-md border border-line bg-surface px-4 py-2.5 text-left text-[0.9375rem] leading-[1.5] text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
                   >

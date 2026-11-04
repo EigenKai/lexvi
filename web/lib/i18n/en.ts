@@ -433,7 +433,7 @@ export const en: Dict = {
       "Team-written test set · N = 20 (11 date traps) · same model: muse-spark-1.3 · run 04/11/2026 · questions shown in English translation",
     savedSub: "a year, not owed",
     savedLine:
-      "Minh: “About twenty-four million a year. I almost paid for a rule that no longer applied.”",
+      "Minh: “About 24 million a year. I almost paid for a rule that no longer applied.”",
     calling: "Calling · my accountant…",
     callLine: "Minh: “Hello, it's Minh. Can you confirm this for me?”",
     savedNote:
