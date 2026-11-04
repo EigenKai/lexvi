@@ -31,20 +31,24 @@ All model calls go to `muse-spark-1.3` through the Meta Model API (OpenAI SDK, R
 ```
 POST /ask     {"cau_hoi": "...", "ngay_ap_dung": "2026-11-01",
                "ho_so": {"loai_hinh": "ho_kinh_doanh", "nganh": "cà phê", "doanh_thu_nam": 400000000, "dia_ban": "TP.HCM"}}
-  -> {tra_loi, trich_dan[{id, cau_trich, nhan_dinh, trang, so_hieu, ten_van_ban, nguon_url, tinh_trang, chuoi_sua_doi}],
+  -> {tra_loi, trich_dan[{id, cau_trich, nhan_dinh, trang, vi_tri_nguon, so_hieu, ten_van_ban, nguon_url,
+                          tinh_trang, ap_dung_ngay_hoi, ngay_ban_hanh, hieu_luc_tu, het_hieu_luc, hoi_to,
+                          sua_doi_toi[], bi_sua_doi_boi[], dan_chieu[], chuoi_sua_doi[]}],
       checklist[{viec, han, can_cu}], can_xac_nhan, run_id, trang_thai, so_luot, thoi_gian_giay}
+      trang_thai: answered | needs_review | no_basis | turn_limit | api_error | cancelled
 POST /ingest  multipart: pdf=<file>, ho_so=<JSON string>
   -> {van_ban_moi, dieu_bi_anh_huong[], viec_can_lam[], bi_loai[], can_xac_nhan}
 GET  /runs/{run_id}   every tool call of one /ask run, for the "how LexVi checked this" view
 GET  /health
 ```
 
-A typical `/ask` takes 4–8 Spark turns and about 30 s; `/ingest` about 45 s.
+Observed on 4 Nov 2026, before the QA fixes (turn limit 14): `/ask` took 7–14 Spark turns and 40–106 s;
+`/ingest` about 48 s. The turn limit is now 20; `/ask` stops between turns when the client disconnects.
 
 ## Run
 
 ```bash
-python3 -m venv pyenv && pyenv/bin/pip install -r requirements.txt
+python3 -m venv pyenv && pyenv/bin/pip install -r requirements-data.txt  # includes requirements.txt; tests need both
 cp .env.example .env          # add MODEL_API_KEY
 pyenv/bin/python -m pytest -q # offline tests, no API calls
 pyenv/bin/uvicorn lexvi.api:app --port 8000
@@ -53,11 +57,47 @@ pyenv/bin/uvicorn lexvi.api:app --port 8000
 Data: see [`data/README.md`](data/README.md). Role-A handoff: [`docs/ROLE_A_HANDOFF.md`](docs/ROLE_A_HANDOFF.md).
 Evaluation against plain RAG: `pyenv/bin/python -m scripts.run_eval`.
 
+## Deploy on Render (the live demo)
+
+The live demo runs this backend as a Render web service. It is created from the public repository URL, branch
+`fix/qa-backend`, so deploys are manual.
+
+| Setting | Value |
+|---|---|
+| Runtime | Python 3 (`.python-version` pins 3.12) |
+| Build | `pip install -r requirements.txt` |
+| Start | `uvicorn lexvi.api:app --host 0.0.0.0 --port $PORT`, one worker, because the limits live in memory |
+| Health check | `/health` |
+
+**Environment:** `MODEL_API_KEY` (secret), `MODEL_API_MODEL=muse-spark-1.3`, and `LEXVI_CORS_ORIGINS` (the live site).
+The public-deploy guards in `lexvi/limits.py` are all off unless set:
+
+- `LEXVI_REQUIRE_ORIGIN=1`: `POST /ask` and `/ingest` need an `Origin` listed in `LEXVI_CORS_ORIGINS`. CORS on its own
+  binds only browsers.
+- `LEXVI_BUDGET_USD_DAY=10`: the estimated spend of all visitors over a rolling 24 h.
+  - It is computed from the metered token use (`su_dung` in each response) at Meta's list prices.
+  - `0` turns live answers off.
+- `LEXVI_LIMIT_ASK=4/h,10/d` and `LEXVI_LIMIT_INGEST=2/h,3/d`: per visitor.
+- `LEXVI_MAX_BUSY=3`: requests running at once.
+
+**Refusals and resets:**
+- A refusal is HTTP 429 with `Retry-After`.
+- A request that never reached the model, such as an unreadable PDF, is not counted.
+- The counters reset when the process restarts.
+
+**Keep-warm:** a Free instance sleeps after 15 idle minutes and takes about a minute to wake.
+`.github/workflows/keep-warm.yml` on `main` pings `/health` every 10 minutes until the date set in that file.
+
 ## Results
 
 Role A's offline data audit passes: **30 documents, 689 articles, 3,586 provision records,
-195 graph edges, 20 reference questions (11 temporal traps)**. All 27 reference citations are
-located on source pages; 13 stale-citation examples are rejected. `python -m pytest -q`: **28 passed**.
+261 graph edges, 20 reference questions (11 temporal traps)**. All 27 reference citations are
+located on source pages; 13 stale-citation examples are rejected. `python -m pytest -q`: **86 passed**.
+66 of the 261 edges (Decree 70/2025 → Decree 123/2020) and the phrase-replacement scope of the 10
+Decree 141 edges were added by role C's QA on 4 Nov 2026 and await role A's review (`ghi_chu`).
+
+The demo video shows the web UI with prepared example responses built from the real corpus; the live backend in
+this repo produced the benchmark (`scripts/run_eval.py`, run 04/11/2026, N = 20; see issue on the outcome).
 
 These are corpus/verification checks, not Spark answer accuracy. Spark vs plain-RAG figures have
 not been measured here; role B can run `scripts/run_eval.py` with its own API key. The reference
@@ -78,6 +118,7 @@ were added on 3 Nov 2026 as part of this hackathon. This does not claim work was
 
 - Covers only the documents in `data/`; questions outside them come back as "no basis found".
 - The graph is curated for the F&B demo scope, not an exhaustive consolidation of every amendment.
-  A partly amended clause is rejected as-written; an unchanged sibling remains available.
+  A clause that is only partly amended (a phrase or a point) can be cited only together with the clause
+  that amends it; a clause rewritten in full cannot be cited; an unchanged sibling remains available.
 - `demo/role_a/` replays the historical arrival of Decree 141/2026 and is labelled as a replay.
 - Not tax or legal advice. Answers flagged `can_xac_nhan` must be checked by an accountant or the tax office.
