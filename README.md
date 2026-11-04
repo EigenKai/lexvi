@@ -73,7 +73,7 @@ Evaluation against plain RAG: `pyenv/bin/python -m scripts.run_eval`.
 
 The live demo runs this backend as a Render web service at `https://lexvi-api.onrender.com` (`GET /health`).
 It deploys `main` from the public repository URL, so deploys are manual: Manual Deploy → Deploy latest commit. The
-web app reaches it from `https://lexvi-live.vercel.app`, the only origin in `LEXVI_CORS_ORIGINS`.
+web app reaches it from `https://lexvi-live.vercel.app`, one of the two origins in `LEXVI_CORS_ORIGINS` (with `https://lexvi.vercel.app`).
 
 | Setting | Value |
 |---|---|
